@@ -5,7 +5,7 @@ import {ChatComponent} from "./chat/chat.component";
 import {PageNotFoundComponent} from "./shared/page-not-found/page-not-found.component";
 import {AuthGuard} from "./shared/guards/auth.guard";
 import {ApprovalGuard} from "./shared/guards/approval.guard";
-import {LoginComponent} from "./login/login.component";
+import {PageNotAuthorizedComponent} from "./shared/page-not-authorized/page-not-authorized.component";
 
 const routes: Routes = [
   {
@@ -13,11 +13,17 @@ const routes: Routes = [
     component: HomeComponent,
     children:[
       {
-        path:'login',
-        component: LoginComponent
+        path: 'chat',
+        component: PageNotAuthorizedComponent
       },
       {
-        path: 'chat',
+        path: 'chat/:username',
+        component: ChatComponent,
+        canActivate: [AuthGuard, ApprovalGuard],
+        canDeactivate: [ApprovalGuard]
+      },
+      {
+        path: 'chat/:username/:randomId',
         component: ChatComponent,
         canActivate: [AuthGuard, ApprovalGuard],
         canDeactivate: [ApprovalGuard]

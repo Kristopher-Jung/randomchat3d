@@ -5,6 +5,7 @@ import {MenuItem} from "primeng/api";
 import {WebsocketService} from "../shared/services/WebsocketService";
 import {Message} from "../shared/models/message";
 import {randInt} from "three/src/math/MathUtils";
+import {UserService} from "../shared/services/UserService";
 // import { uuid } from 'uuidv4';
 
 
@@ -20,18 +21,25 @@ export class ChatComponent implements OnInit, OnDestroy {
   public textChatInput: string;
 
 
-  constructor(private route: ActivatedRoute, private webSocketService: WebsocketService) {
+  constructor(private route: ActivatedRoute, private webSocketService: WebsocketService, private userService: UserService) {
     this.subscriptions = new Subscription;
     this.textChatInput = "";
   }
 
   ngOnInit(): void {
+    console.log("chat init!!!");
     const randomName = "Dude" + randInt(1,10);
-    this.webSocketService.initService(randomName);
-    this.subscriptions.add(this.webSocketService.angularMessageListener.subscribe((msg: Message) => {
-      if (msg)
-        console.log(msg);
-    }));
+    this.userService.isUserLoggedIn.subscribe((status: boolean) => {
+      if(status) {
+        this.webSocketService.connectService(randomName);
+        this.subscriptions.add(this.webSocketService.angularMessageListener.subscribe((msg: Message) => {
+          if (msg)
+            console.log(msg);
+        }));
+      } else {
+        this.webSocketService.disconnectService();
+      }
+    });
 
     this.items = [
       {

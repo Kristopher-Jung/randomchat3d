@@ -1,9 +1,7 @@
-<!--<p-menubar [model]="items">-->
-<!--  <ng-template pTemplate="start">-->
-<!--    icon here-->
-<!--  </ng-template>-->
-<!--  <ng-template pTemplate="end">-->
-<!--    <input type="text" pInputText placeholder="Search">-->
-<!--  </ng-template>-->
-<!--</p-menubar>-->
+<div *ngIf="!isLoggedIn">
+  <app-login></app-login>
+</div>
+<div *ngIf="isLoggedIn">
+  <app-profile [username]="username"></app-profile>
+</div>
 

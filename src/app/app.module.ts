@@ -5,7 +5,6 @@ import { HomeComponent } from './home/home.component';
 import { ChatComponent } from './chat/chat.component';
 import { VoiceComponent } from './chat/voice/voice.component';
 import { CanvasComponent } from './chat/canvas/canvas.component';
-import { LoginComponent } from './home/login/login.component';
 import { FooterComponent } from './home/footer/footer.component';
 import { PageNotFoundComponent } from './shared/page-not-found/page-not-found.component';
 import { HeaderComponent } from './home/header/header.component';
@@ -20,6 +19,11 @@ import {SplitButtonModule} from "primeng/splitbutton";
 import {InputTextareaModule} from "primeng/inputtextarea";
 import {FormsModule} from "@angular/forms";
 import {WebsocketService} from "./shared/services/WebsocketService";
+import {LoginComponent} from "./login/login.component";
+import {UserService} from "./shared/services/UserService";
+import { ProfileComponent } from './login/profile/profile.component';
+import { PageNotAuthorizedComponent } from './shared/page-not-authorized/page-not-authorized.component';
+import {DividerModule} from "primeng/divider";
 
 @NgModule({
   declarations: [
@@ -28,26 +32,30 @@ import {WebsocketService} from "./shared/services/WebsocketService";
     ChatComponent,
     VoiceComponent,
     CanvasComponent,
-    LoginComponent,
     FooterComponent,
     PageNotFoundComponent,
-    HeaderComponent
+    HeaderComponent,
+    LoginComponent,
+    ProfileComponent,
+    PageNotAuthorizedComponent
   ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    MenubarModule,
-    SharedModule,
-    InputTextModule,
-    ToolbarModule,
-    ButtonModule,
-    SplitButtonModule,
-    InputTextareaModule,
-    FormsModule
-  ],
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        AppRoutingModule,
+        MenubarModule,
+        SharedModule,
+        InputTextModule,
+        ToolbarModule,
+        ButtonModule,
+        SplitButtonModule,
+        InputTextareaModule,
+        FormsModule,
+        DividerModule
+    ],
   providers: [
-    WebsocketService
+    WebsocketService,
+    UserService
   ],
   bootstrap: [AppComponent]
 })

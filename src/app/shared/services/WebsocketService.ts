@@ -17,7 +17,7 @@ export class WebsocketService {
     this.isConnected = false;
   }
 
-  initService(username: string) {
+  connectService(username: string) {
     this.socket = io(environment.ws_url, {
       auth: {
         token: username
@@ -31,6 +31,16 @@ export class WebsocketService {
         this.angularMessageListener.next(msg);
       }
     });
+  }
+
+  disconnectService() {
+    if(this.isConnected && this.socket){
+      console.log("requested socket to disconnect");
+      this.socket?.disconnect();
+      this.isConnected = false;
+    } else {
+      console.log("no existing connection to io-socket");
+    }
   }
 
   emitTextMessage(message: string) {
