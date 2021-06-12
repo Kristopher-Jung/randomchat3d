@@ -10,7 +10,7 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "~12.0.3",
+    "@angular/animations": "^12.0.4",
     "@angular/common": "~12.0.3",
     "@angular/compiler": "~12.0.3",
     "@angular/core": "~12.0.3",
@@ -18,8 +18,19 @@
     "@angular/platform-browser": "~12.0.3",
     "@angular/platform-browser-dynamic": "~12.0.3",
     "@angular/router": "~12.0.3",
+    "@types/socket.io-client": "^3.0.0",
+    "@types/three": "^0.129.1",
+    "autoprefixer": "^10.2.6",
+    "path": "^0.12.7",
+    "postcss": "^8.3.1",
+    "primeicons": "^4.1.0",
+    "primeng": "^12.0.0-rc.1",
     "rxjs": "~6.6.0",
+    "socket.io-client": "^4.1.2",
+    "tailwindcss": "^2.1.4",
+    "three": "^0.129.0",
     "tslib": "^2.1.0",
+    "uuidv4": "^6.2.10",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
@@ -35,5 +46,10 @@
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.5.0",
     "typescript": "~4.2.3"
-  }
+  },
+  "styles": [
+    "node_modules/primeng/resources/themes/vela-orange/theme.css",
+    "node_modules/primeng/resources/primeng.min.css",
+    "node_modules/primeicons/primeicons.css"
+  ]
 }

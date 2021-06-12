@@ -1,0 +1,18 @@
+{
+  "name": "chat-server",
+  "version": "1.0.0",
+  "description": "chat server for randomChat4d",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "author": "Kristopher Jung",
+  "license": "ISC",
+  "dependencies": {
+    "@types/socket.io": "^3.0.2",
+    "express": "^4.17.1",
+    "moment": "^2.29.1",
+    "path": "^0.12.7",
+    "socket.io": "^4.1.2"
+  }
+}

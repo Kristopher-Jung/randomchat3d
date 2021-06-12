@@ -1,0 +1,31 @@
+<div class="relative">
+  <!-- tailwindClass should be used in styleClass for primeng components-->
+  <p-toolbar styleClass="py-1 opacity-100 bg-blue-50 border-transparent rounded-full">
+    <div class="p-toolbar-group-left z-10">
+      <p-button styleClass="rounded-full mx-1" label="New" icon="pi pi-plus"></p-button>
+      <p-button label="Upload" icon="pi pi-upload" styleClass="p-button-success rounded-full mx-1"></p-button>
+      <p-splitButton label="Save" icon="pi pi-check" [model]="items" styleClass="p-button-warning rounded-full mx-1"></p-splitButton>
+    </div>
+
+    <div class="p-toolbar-group-right z-10">
+      <p-button icon="pi pi-search" styleClass="rounded-full mx-1"></p-button>
+      <p-button icon="pi pi-calendar" styleClass="p-button-success rounded-full mx-1"></p-button>
+      <p-button icon="pi pi-times" styleClass="p-button-danger rounded-full mx-1"></p-button>
+    </div>
+  </p-toolbar>
+  <app-canvas class="absolute inset-0 flex z-0"></app-canvas>
+</div>
+
+<div class="flex absolute insert-x-0 bottom-10 z-10 w-11/12 justify-center">
+  <input type="text"
+         pInputText
+         style="width:50vw;
+                background: transparent;
+                color: black;
+                margin-left: 2em"
+         [(ngModel)]="textChatInput"/>
+  <p-button styleClass="rounded-full ml-5"
+            (onClick)="onTextInputSubmit()">
+    Submit
+  </p-button>
+</div>
