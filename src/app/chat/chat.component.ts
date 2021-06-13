@@ -19,6 +19,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription;
   public items: MenuItem[] = [];
   public textChatInput: string;
+  public username: any;
 
 
   constructor(private route: ActivatedRoute, private webSocketService: WebsocketService, private userService: UserService) {
@@ -28,18 +29,21 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log("chat init!!!");
-    const randomName = "Dude" + randInt(1,10);
-    this.userService.isUserLoggedIn.subscribe((status: boolean) => {
-      if(status) {
-        this.webSocketService.connectService(randomName);
+    const routeParams = this.route.snapshot.paramMap;
+    const username = routeParams.get('username');
+    if(username) {
+      console.log(username);
+      this.username = username;
+      if (this.userService.isUserLoggedInBool && !this.webSocketService.isConnected) {
+        this.webSocketService.connectService(this.username);
         this.subscriptions.add(this.webSocketService.angularMessageListener.subscribe((msg: Message) => {
           if (msg)
             console.log(msg);
         }));
-      } else {
+      } else if (!this.userService.isUserLoggedInBool && this.webSocketService.isConnected) {
         this.webSocketService.disconnectService();
       }
-    });
+    }
 
     this.items = [
       {
@@ -64,7 +68,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    console.log(`chat component destroyed!!`);
     this.subscriptions.unsubscribe();
+    this.webSocketService.disconnectService();
   }
 
   onTextInputSubmit() {

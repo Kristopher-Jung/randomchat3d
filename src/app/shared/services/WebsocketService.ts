@@ -5,7 +5,9 @@ import {BehaviorSubject, Subject} from "rxjs";
 import {Message} from "../models/message";
 import {DefaultEventsMap} from 'socket.io-client/build/typed-events';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class WebsocketService {
 
   private socket: Socket<DefaultEventsMap, DefaultEventsMap> | null;
@@ -18,25 +20,31 @@ export class WebsocketService {
   }
 
   connectService(username: string) {
-    this.socket = io(environment.ws_url, {
-      auth: {
-        token: username
-      }
-    });
-    this.angularMessageListener = new BehaviorSubject<any>(null);
+    if(!this.isConnected) {
+      this.socket = io(environment.ws_url, {
+        auth: {
+          token: username
+        }
+      });
+      this.angularMessageListener = new BehaviorSubject<any>(null);
 
-    this.socket.on('message', (msg: Message) => {
-      if(this.angularMessageListener) {
-        this.isConnected = true;
-        this.angularMessageListener.next(msg);
-      }
-    });
+      this.socket.on('message', (msg: Message) => {
+        if (this.angularMessageListener) {
+          this.isConnected = true;
+          this.angularMessageListener.next(msg);
+        }
+      });
+    } else {
+      console.log(`${username} is already connected to socket`);
+    }
   }
 
   disconnectService() {
-    if(this.isConnected && this.socket){
+    if(this.isConnected || this.socket){
       console.log("requested socket to disconnect");
-      this.socket?.disconnect();
+      if(this.socket)
+        this.socket.disconnect();
+        this.socket = null;
       this.isConnected = false;
     } else {
       console.log("no existing connection to io-socket");
@@ -44,7 +52,7 @@ export class WebsocketService {
   }
 
   emitTextMessage(message: string) {
-    if(this.socket)
+    if(this.isConnected && this.socket)
       this.socket.emit('textChatMessage', message);
     else
       console.log("You should call initService first");

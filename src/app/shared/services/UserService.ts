@@ -1,14 +1,17 @@
 import {Injectable} from "@angular/core";
 import {BehaviorSubject} from "rxjs";
+import {WebsocketService} from "./WebsocketService";
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class UserService {
 
   public isUserLoggedIn = new BehaviorSubject<boolean>(false);
   public isUserLoggedInBool: boolean = false;
   public userName: string | null;
 
-  constructor() {
+  constructor(private webSocketService: WebsocketService) {
     this.userName = null;
   }
 
@@ -24,5 +27,6 @@ export class UserService {
     this.userName = null;
     this.isUserLoggedIn.next(false);
     this.isUserLoggedInBool = false;
+    this.webSocketService.disconnectService();
   }
 }

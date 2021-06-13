@@ -1,7 +1,15 @@
-<div class="flex flex-col h-screen">
-  <app-header></app-header>
-  <div class="flex-1 overflow-y-auto p-5">
+<div class="flex relative flex-col h-screen overflow-y-hidden justify-content">
+  <div class="z-30">
+    <app-header></app-header>
+  </div>
+  <div class="flex-1 overflow-y-hidden h-auto">
     <router-outlet></router-outlet>
   </div>
-  <app-footer></app-footer>
+  <div *ngIf="enableBackground"
+       #backgroundRendererContainer
+       class="absolute z-10 h-screen w-full overflow-x-hidden overflow-y-hidden">
+  </div>
+  <div class="z-30 absolute bottom-0 w-full">
+    <app-footer></app-footer>
+  </div>
 </div>
