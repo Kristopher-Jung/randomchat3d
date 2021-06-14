@@ -1,5 +1,5 @@
 <div class="flex relative flex-col h-screen overflow-y-hidden justify-content">
-  <div class="z-30">
+  <div class="z-0" style="pointer-events: all">
     <app-header></app-header>
   </div>
   <div class="flex-1 overflow-y-hidden h-auto">
@@ -7,9 +7,9 @@
   </div>
   <div *ngIf="enableBackground"
        #backgroundRendererContainer
-       class="absolute z-10 h-screen w-full overflow-x-hidden overflow-y-hidden">
+       class="absolute h-screen w-full overflow-x-hidden overflow-y-hidden pointer-events-none">
   </div>
-  <div class="z-30 absolute bottom-0 w-full">
+  <div class="z-0 absolute bottom-0 w-full">
     <app-footer></app-footer>
   </div>
 </div>
