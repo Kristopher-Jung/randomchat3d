@@ -96,7 +96,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       if (this.mesh) {
         this.mesh.rotation.y = elapsedTime;
         this.mesh.position.y = Math.max(Math.sin(elapsedTime * 2) * 5, 0);
-        // this.mesh.rotation.z += 0.02;
       }
       this.renderer.render(this.scene, this.camera);
       window.requestAnimationFrame(() => this.animate());

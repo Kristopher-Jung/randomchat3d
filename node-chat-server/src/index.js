@@ -4,9 +4,10 @@ const http = require('http');
 const express = require('express');
 const app = express();
 const socketio = require('socket.io');
-const formatMessage = require('./messages');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const mongoRouter = require('./mongoRouter');
+const socketRouter = require('./socketRouter')
 
 /**
  * MongoDB server
@@ -18,6 +19,7 @@ const MONGO_PORT = process.env.MONGO_PORT || 5000;
 app.listen(MONGO_PORT, () => {
   console.log(`started mongo-server on port: ${MONGO_PORT}`);
 });
+mongoRouter(app);
 
 //Mongo DB Connection
 mongoose.promise = global.Promise;
@@ -33,10 +35,6 @@ mongoose.connect(mongoUrl, {
   process.exit();
 });
 
-app.get('/', (req, res) => {
-  res.send('<h1>Mongo Server is running</h1>');
-});
-
 /**
  * Socket server
  */
@@ -46,35 +44,11 @@ const io = socketio(socketServer, {
     origins: ['http://localhost:4200']
   }
 });
-
-// socket.broadcast.emit send message to all clients connected, except current user
-// io.emit send message to all clients
-// socket.emit send message to the client
 io.on("connection", socket => {
   // user's token
   const token = socket.handshake.auth.token;
   console.log(`socket connection with username: ${token}`);
-
-  // Welcome current user
-  socket.emit('message',
-    formatMessage(token, 'Welcome to chat!'));
-
-  // Broadcast when a user connects
-  socket.broadcast.emit('message',
-    formatMessage(token, 'A user has joined the chat'));
-
-  // Runs when client disconnects
-  socket.on('disconnect', () => {
-    console.log(`socket disconnection with username: ${token}`);
-    io.emit('message',
-      formatMessage(token, 'A user has left the chat'));
-  });
-
-  // Listen for textChatMessage
-  socket.on('textChatMessage', textMessage => {
-    io.emit('message',
-      formatMessage(token, textMessage))
-  })
+  socketRouter(socket, io, token);
 });
 
 // Initialize our websocket server on port 3000
