@@ -3,12 +3,13 @@ import {UserService} from "../shared/services/UserService";
 import {Subscription} from "rxjs";
 import {DialogService} from "primeng/dynamicdialog";
 import {SignupComponent} from "./signup/signup.component";
+import {MessageService} from "primeng/api";
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  providers: [DialogService]
+  providers: [DialogService, DialogService]
 })
 export class LoginComponent implements OnInit, OnDestroy {
 
@@ -16,7 +17,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   public password: any = null;
   public username: any = null;
 
-  constructor(private userService: UserService, public dialogService: DialogService) {
+  constructor(private userService: UserService,
+              public dialogService: DialogService,
+              public messageService: MessageService) {
     this.subscriptions = new Subscription();
   }
 
@@ -28,7 +31,22 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   login(): void {
-    this.userService.login(this.username, this.password);
+    this.userService.login(this.username, this.password).subscribe(res => {
+      if(res && !res.message) {
+        this.userService.userName = this.username;
+        this.userService.isUserLoggedIn.next(true);
+        this.userService.isUserLoggedInBool = true;
+      } else {
+        if(res) {
+          this.messageService.add({
+            key: 'home',
+            severity: 'warn',
+            summary: 'Warn',
+            detail: res.message
+          });
+        }
+      }
+    });
   }
 
   signUp(): void {
@@ -40,7 +58,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     })
 
     this.subscriptions.add(ref.onClose.subscribe(data => {
-      this.username = data.username;
+      if(data)
+        this.username = data.username;
     }));
   }
 }

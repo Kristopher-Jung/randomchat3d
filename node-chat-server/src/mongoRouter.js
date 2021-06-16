@@ -7,8 +7,8 @@ const router = function(app) {
   });
 
   // mongo db interaction controller
-  app.get('/user/:username/:password', userController.create);
-  app.get('/user/:username', userController.findOne);
+  app.post('/user/:username', userController.create);
+  app.post('/user/auth/:username', userController.findOne);
 
   // should be the last
   app.get('*', (req, res) => {

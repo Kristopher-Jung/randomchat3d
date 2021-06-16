@@ -11,7 +11,7 @@ import {HeaderComponent} from './home/header/header.component';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {MenubarModule} from "primeng/menubar";
-import {SharedModule} from "primeng/api";
+import {MessageService, SharedModule} from "primeng/api";
 import {InputTextModule} from "primeng/inputtext";
 import {ToolbarModule} from "primeng/toolbar";
 import {ButtonModule} from "primeng/button";
@@ -31,6 +31,9 @@ import {DynamicDialogModule} from "primeng/dynamicdialog";
 import {BlockUIModule} from "primeng/blockui";
 import {ProgressBarModule} from "primeng/progressbar";
 import {ProgressSpinnerModule} from "primeng/progressspinner";
+import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
+import {HttpInterceptor} from "./shared/interceptors/http-interceptor";
+import {ToastModule} from "primeng/toast";
 
 @NgModule({
   declarations: [
@@ -65,11 +68,19 @@ import {ProgressSpinnerModule} from "primeng/progressspinner";
     DynamicDialogModule,
     BlockUIModule,
     ProgressBarModule,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    HttpClientModule,
+    ToastModule
   ],
   providers: [
     WebsocketService,
-    UserService
+    UserService,
+    MessageService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpInterceptor,
+      multi: true,
+    },
   ],
   bootstrap: [AppComponent]
 })

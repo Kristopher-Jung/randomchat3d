@@ -2,6 +2,7 @@ require('dotenv').config();
 const path = require('path');
 const http = require('http');
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const socketio = require('socket.io');
 const bodyParser = require('body-parser');
@@ -12,9 +13,15 @@ const socketRouter = require('./socketRouter')
 /**
  * MongoDB server
  */
+app.use(cors());
+//TODO
+// app.use(cors({
+//   origin: 'http://yourapp.com'
+// }));
 app.use(express.static(path.join(__dirname, 'static')));
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
+
 const MONGO_PORT = process.env.MONGO_PORT || 5000;
 app.listen(MONGO_PORT, () => {
   console.log(`started mongo-server on port: ${MONGO_PORT}`);
@@ -26,6 +33,7 @@ mongoose.promise = global.Promise;
 const mongoUrl = process.env.CONNECTION_STRING;
 console.log(mongoUrl);
 mongoose.connect(mongoUrl, {
+  useCreateIndex: true,
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => {
