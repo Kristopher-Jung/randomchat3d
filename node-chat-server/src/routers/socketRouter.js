@@ -1,9 +1,9 @@
-const formatMessage = require('../models/messages');
+const {formatMessage, ControllerEnum} = require('../models/messages');
 const http = require('http');
 require('dotenv').config();
 const node_env = process.env.NODE_ENV || 'development';
 let APP_URL = null;
-if(node_env === 'development') {
+if (node_env === 'development') {
   APP_URL = process.env.LOCAL_URL;
 } else {
   APP_URL = process.env.PRODUCTION_URL;
@@ -12,31 +12,55 @@ console.log(`Socket Router connected to env: ${node_env}`);
 
 const MONGO_PORT = process.env.MONGO_PORT;
 const SERVER = 'ServerMessage';
+let connectCount = 0;
 
 // socket.broadcast.emit send message to all clients connected, except current user
 // io.emit send message to all clients
 // socket.emit send message to the client
-const router = function(socket, io, clientUsername) {
+const router = function (socket, io, clientUsername) {
   // Welcome current user
+  connectCount+=1;
   console.log(`socket connection with username: ${clientUsername}, socketId: ${socket.id}`);
-  socket.emit(SERVER, `Welcome to Chat Server! ${clientUsername}, socketId:${socket.id}`);
+  socket.emit(SERVER, formatMessage(clientUsername, null,
+    `Welcome to Chat Server! ${clientUsername}`,
+    ControllerEnum.DISPLAY));
+  io.emit(SERVER, formatMessage(null, null, connectCount, ControllerEnum.SOCKET_STAT));
 
   socket.on('joinRoom', (roomId) => {
     socket.join(roomId);
     // Broadcast when a user connects to the room
+    const numberConnections = io.sockets.adapter.rooms.get(roomId).size;
+    if (numberConnections === 1) {
+      io.to(roomId).emit(SERVER, formatMessage(clientUsername,
+        // Tell UI to wait until someone join the chat room.
+        roomId, numberConnections, ControllerEnum.AWAIT));
+    } else {
+      io.to(roomId).emit(SERVER, formatMessage(clientUsername,
+        // Tell UI to stop waiting for the new user for the chat room.
+        roomId, numberConnections, ControllerEnum.COMPLETE));
+    }
     socket.broadcast
       .to(roomId)
-      .emit(SERVER, formatMessage(clientUsername, roomId,`${clientUsername} has joined the chat room: ${roomId}`));
+      .emit(SERVER, formatMessage(clientUsername,
+        roomId, `${clientUsername} has joined the chat room: ${roomId}`, ControllerEnum.DISPLAY));
   });
 
   //when user left room, but did not signOut yet.
   socket.on('leaveRoom', (roomId) => {
     console.log(`${clientUsername} is leaving roomId:${roomId}`)
+    let numberConnections = io.sockets.adapter.rooms.get(roomId).size;
     socket.leave(roomId);
     // Broadcast when a user disconnect from the room
     socket.broadcast
       .to(roomId)
-      .emit(SERVER, formatMessage(clientUsername, roomId, `${clientUsername} has left the chat room: ${roomId}`));
+      .emit(SERVER, formatMessage(clientUsername,
+        roomId, `${clientUsername} has left the chat room: ${roomId}`, ControllerEnum.DISPLAY));
+    numberConnections -= 1;
+    // Tell UI to wait until someone join the chat room.
+    socket.broadcast
+      .to(roomId)
+      .emit(SERVER, formatMessage(clientUsername,
+        roomId, numberConnections, ControllerEnum.AWAIT));
   });
 
   // Listen for textChatMessage
@@ -44,7 +68,7 @@ const router = function(socket, io, clientUsername) {
     io.to(roomId).emit('textChat', {textMessage, username, roomId});
   })
 
-  // Runs when client disconnects completely (signOut)
+  // Runs when client disconnects completely (signOut) or close browser/ dced unexpectedly
   socket.on('disconnect', () => {
     console.log(`socket disconnection with username: ${clientUsername}, socketId: ${socket.id}`);
     http.get(`${APP_URL}:${MONGO_PORT}/user/leaveChat/${clientUsername}`, resp => {
@@ -52,6 +76,8 @@ const router = function(socket, io, clientUsername) {
     }).on("error", err => {
       console.log("Error: " + err.message);
     });
+    connectCount-=1;
+    io.emit(SERVER, formatMessage(null, null, connectCount, ControllerEnum.SOCKET_STAT));
   });
 };
 

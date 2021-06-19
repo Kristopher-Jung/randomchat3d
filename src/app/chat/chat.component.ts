@@ -5,12 +5,16 @@ import {MenuItem, MessageService} from "primeng/api";
 import {WebsocketService} from "../shared/services/WebsocketService";
 import {ServerMessage} from "../shared/models/server-message";
 import {UserService} from "../shared/services/UserService";
+import {TextMessage} from "../shared/models/text-message";
+import {DialogService} from "primeng/dynamicdialog";
+import {LoadingComponent} from "../shared/loading/loading.component";
 
 
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
-  styleUrls: ['./chat.component.css']
+  styleUrls: ['./chat.component.css'],
+  providers: [DialogService]
 })
 export class ChatComponent implements OnInit, OnDestroy {
 
@@ -18,12 +22,15 @@ export class ChatComponent implements OnInit, OnDestroy {
   public items: MenuItem[] = [];
   public textChatInput: string;
   public username: any;
+  public disableSearch: boolean = false;
+  public loadingRef: any;
 
 
   constructor(private route: ActivatedRoute,
               private webSocketService: WebsocketService,
               private userService: UserService,
-              private messageService: MessageService) {
+              private messageService: MessageService,
+              private dialogService: DialogService) {
     this.subscriptions = new Subscription;
     this.textChatInput = "";
   }
@@ -36,11 +43,46 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.username = username;
       if (this.userService.isUserLoggedInBool && !this.webSocketService.isConnected) {
         this.webSocketService.connectService(this.username);
-        this.subscriptions.add(this.webSocketService.serverMessageListener.subscribe((msg: any) => {
-          if (msg)
-            console.log(msg);
+        this.subscriptions.add(this.webSocketService.serverMessageListener.subscribe((msg: ServerMessage) => {
+          if (msg){
+            // console.log(msg);
+            switch (msg.controllerEnum) {
+              case 0: // display
+                this.messageService.add({
+                  key:'chat',
+                  severity:'info',
+                  summary:'Info',
+                  detail:`${msg.text}[${msg.time}]`
+                });
+                break;
+              case 1: // await
+                this.disableSearch = true;
+                this.loadingRef = this.dialogService.open(LoadingComponent, {
+                  data: 'Waiting someone to join....',
+                  width: '50%',
+                  height: '50%',
+                  closable: true
+                });
+                break;
+              case 2: // complete
+                this.disableSearch = false;
+                if(this.loadingRef) {
+                  this.loadingRef.close();
+                  this.loadingRef = null;
+                }
+                this.messageService.add({
+                  key:'chat',
+                  severity:'info',
+                  summary:'Info',
+                  detail:'Matching completed!'
+                });
+                break;
+              default:
+                break;
+            }
+          }
         }));
-        this.subscriptions.add(this.webSocketService.textMessageListener.subscribe((msg:any) => {
+        this.subscriptions.add(this.webSocketService.textMessageListener.subscribe((msg:TextMessage) => {
           if(msg)
             console.log(msg);
         }));

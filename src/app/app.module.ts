@@ -34,6 +34,7 @@ import {ProgressSpinnerModule} from "primeng/progressspinner";
 import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
 import {HttpInterceptor} from "./shared/interceptors/http-interceptor";
 import {ToastModule} from "primeng/toast";
+import { LoadingComponent } from './shared/loading/loading.component';
 
 @NgModule({
   declarations: [
@@ -48,7 +49,8 @@ import {ToastModule} from "primeng/toast";
     LoginComponent,
     ProfileComponent,
     PageNotAuthorizedComponent,
-    SignupComponent
+    SignupComponent,
+    LoadingComponent
   ],
   imports: [
     BrowserModule,

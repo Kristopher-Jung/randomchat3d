@@ -1,10 +1,10 @@
-export interface textMessage{
+export interface TextMessage {
   textMessage: string,
   username: string,
   roomId: string
 }
 
-export class textMessage {
+export class TextMessage {
   constructor(textMessage:string, username:string, roomId:string) {
     this.textMessage = textMessage;
     this.username = username;

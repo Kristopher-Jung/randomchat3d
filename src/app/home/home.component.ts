@@ -3,6 +3,7 @@ import {UserService} from "../shared/services/UserService";
 import {Subscription} from "rxjs";
 import * as THREE from "three";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
+import {WebsocketService} from "../shared/services/WebsocketService";
 
 @Component({
   selector: 'app-home',

@@ -3,6 +3,7 @@ import {UserService} from "../../shared/services/UserService";
 import {Router} from "@angular/router";
 import {Subscription} from "rxjs";
 import {WebsocketService} from "../../shared/services/WebsocketService";
+import {ServerMessage} from "../../shared/models/server-message";
 
 @Component({
   selector: 'app-profile',
@@ -11,14 +12,26 @@ import {WebsocketService} from "../../shared/services/WebsocketService";
 })
 export class ProfileComponent implements OnInit, OnDestroy {
 
-  private subscription: Subscription;
+  public connectedUserNum: number = 0;
+  private subscriptions: Subscription;
   @Input('username') username : any;
 
   constructor(private userService: UserService, private websocketService: WebsocketService, private router: Router) {
-    this.subscription = new Subscription();
+    this.subscriptions = new Subscription();
   }
 
   ngOnInit(): void {
+    this.subscriptions.add(this.websocketService.serverMessageListener.subscribe((msg: ServerMessage) => {
+      if(msg) {
+        switch (msg.controllerEnum) {
+          case 3:
+            this.connectedUserNum = +msg.text;
+            break;
+          default:
+            break;
+        }
+      }
+    }));
   }
 
   logout(): void {
@@ -39,7 +52,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
     } else {
       this.userService.logout();
-      this.subscription.add(this.userService.isUserLoggedIn.subscribe((status: boolean) => {
+      this.subscriptions.add(this.userService.isUserLoggedIn.subscribe((status: boolean) => {
         if (!status) {
           this.router.navigate(['']);
         }
@@ -48,7 +61,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 }

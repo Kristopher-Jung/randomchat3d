@@ -4,7 +4,7 @@ import {environment} from '../../../environments/environment';
 import {BehaviorSubject, Subject} from "rxjs";
 import {ServerMessage} from "../models/server-message";
 import {DefaultEventsMap} from 'socket.io-client/build/typed-events';
-import {textMessage} from "../models/text-message";
+import {TextMessage} from "../models/text-message";
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,7 @@ export class WebsocketService {
 
   private socket: Socket<DefaultEventsMap, DefaultEventsMap> | null;
   public serverMessageListener: Subject<ServerMessage> = new Subject();
-  public textMessageListener: Subject<textMessage> = new Subject<textMessage>();
+  public textMessageListener: Subject<TextMessage> = new Subject<TextMessage>();
   public isConnected: boolean
 
   constructor() {
@@ -49,7 +49,7 @@ export class WebsocketService {
 
   listenTextChat() {
     if(this.socket) {
-      this.socket.on('textChat', (msg: textMessage) => {
+      this.socket.on('textChat', (msg: TextMessage) => {
         if (this.textMessageListener) {
           this.textMessageListener.next(msg);
         }
@@ -87,7 +87,7 @@ export class WebsocketService {
     if(this.isConnected && this.socket)
       if(roomId) {
         console.log(message, roomId);
-        this.socket.emit('textChat', new textMessage(message, username, roomId));
+        this.socket.emit('textChat', new TextMessage(message, username, roomId));
       } else {
         console.log("roomId is missing!");
       }
