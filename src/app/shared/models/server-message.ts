@@ -1,4 +1,4 @@
-export interface Message {
+export interface ServerMessage {
   username:string;
   text:string;
   time:string;

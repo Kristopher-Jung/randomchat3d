@@ -4,7 +4,6 @@ import {WebsocketService} from "./WebsocketService";
 import {environment} from "../../../environments/environment";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {UserModel} from "../models/UserModel";
-import {catchError, tap} from "rxjs/operators";
 import {MessageService} from "primeng/api";
 
 @Injectable({
@@ -16,20 +15,22 @@ export class UserService {
   public isUserLoggedInBool: boolean = false;
   public userName: string | null;
   private readonly connectionUrl;
+  public roomId: string | null;
 
   constructor(private webSocketService: WebsocketService, private http: HttpClient, private messageService: MessageService) {
     this.userName = null;
+    this.roomId = null;
     if(isDevMode()) {
       console.log("Angular is currently running in Dev Mode");
     } else {
       console.log("Angular is currently running in Prod Mode");
     }
     this.connectionUrl = environment.m_url;
-    console.log(this.connectionUrl);
+    //console.log(this.connectionUrl);
   }
 
   signUp(username:string, password:string): Observable<any> {
-    const full_String = `${this.connectionUrl}/user/${username}`;
+    const full_String = `${this.connectionUrl}/user/signUp/${username}`;
     const headers = new HttpHeaders();
     const body = {
       password: password
@@ -57,8 +58,29 @@ export class UserService {
   logout(): void {
     console.log(`username: ${this.userName} just logged out!`);
     this.userName = null;
+    this.roomId = null;
     this.isUserLoggedIn.next(false);
     this.isUserLoggedInBool = false;
     this.webSocketService.disconnectService();
+  }
+
+  leaveChat(username:string | null): Observable<any> {
+    const full_String = `${this.connectionUrl}/user/leaveChat/${username}`;
+    const headers = new HttpHeaders();
+    const requestOptions = {
+      headers: headers
+    };
+    headers.set('Access-Control-Allow-Origin', '*');
+    return this.http.get<any>(full_String, requestOptions);
+  }
+
+  joinChat(username:string): Observable<any> {
+    const full_String = `${this.connectionUrl}/user/joinChat/${username}`;
+    const headers = new HttpHeaders();
+    const requestOptions = {
+      headers: headers
+    };
+    headers.set('Access-Control-Allow-Origin', '*');
+    return this.http.get<any>(full_String, requestOptions);
   }
 }

@@ -12,6 +12,10 @@ const userSchema = mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  roomId: {
+    type: String,
+    required: false
   }
 }, {
   timestamps: true

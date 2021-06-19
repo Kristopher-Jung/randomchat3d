@@ -30,7 +30,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.GLTFLoader.load(
       'assets/static/totoro.glb',
       (gltf => {
-        console.log(gltf);
+        //console.log(gltf);
         this.mesh = gltf.scene.children[0];
         this.mesh.castShadow = true;
         this.scene.add(this.mesh);
@@ -81,7 +81,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   run() {
-    console.log("run called!");
+    //console.log("run called!");
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);

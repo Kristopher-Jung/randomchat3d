@@ -1,8 +1,9 @@
 const UserModel = require('../models/mongooseSchema');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const { v4: uuidv4 } = require('uuid');
 
-exports.create = (req, res) => {
+exports.createUser = (req, res) => {
   console.log(`signup requested by ${req.params.username}`);
   if (!req.params.username) {
     return res.status(400).send({
@@ -35,7 +36,8 @@ exports.create = (req, res) => {
         } else {
           const user = new UserModel({
             username: req.params.username,
-            password: hash
+            password: hash,
+            roomId: null
           });
           user.save()
             .then(data => {
@@ -57,7 +59,7 @@ exports.create = (req, res) => {
   })
 };
 
-exports.findOne = (req, res) => {
+exports.authUser = (req, res) => {
   const password = req.body.password;
   if (!password) {
     return res.send.send({
@@ -104,3 +106,76 @@ exports.findOne = (req, res) => {
   });
 };
 
+exports.createChat = (req, res) => {
+  const username = req.params.username;
+  const roomId = req.params.roomId;
+  console.log(`Create chat room requested for username:${username}, room:${roomId}`)
+  UserModel.findOneAndUpdate({username: username}, {roomId: roomId}, {new: true},
+    (err, doc) => {
+      if (err) {
+        return res.status(500).send({
+          message: `couldn't create a chat room due to mongoDB error, roomId:${roomId}, username:${username}`
+        });
+      } else {
+        if(doc) {
+          return res.send(doc);
+        } else {
+          return res.send({
+            message: `User not found, username:${username}`
+          });
+        }
+      }
+    });
+};
+
+exports.leaveChat = (req, res) => {
+  const username = req.params.username;
+  UserModel.findOneAndUpdate({username: username}, {roomId: null}, {new: true},
+    (err, doc) => {
+      if (err) {
+        return res.status(500).send({
+          message: `couldn't leave a chat room, username:${username}`
+        });
+      } else {
+        if(doc) {
+          return res.send(doc);
+        } else {
+          return res.send({
+            message: `User not found, username:${username}`
+          });
+        }
+      }
+    });
+};
+
+exports.joinChat = (req, res) => {
+  UserModel.aggregate([
+    {
+      "$group" : {_id:"$roomId", count: {$sum:1}}
+    },
+    {
+      "$match": {_id: {"$ne":null}, count: {"$lte":1}}
+    },
+  ], (err, rooms) => {
+    if(err) {
+      return res.status(500).send({
+        message: `Could not join or create a new chat for user: ${req.params.username} because of DB error`
+      });
+    }
+    if(rooms.length > 0) {
+      const roomSize = rooms.length;
+      const rand = getRandomInteger(0, roomSize);
+      req.params.roomId = rooms[rand];
+      return this.createChat(req, res);
+    } else {
+      req.params.roomId = uuidv4();
+      return this.createChat(req, res);
+    }
+  });
+};
+
+function getRandomInteger(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
+}

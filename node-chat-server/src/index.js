@@ -7,8 +7,8 @@ const app = express();
 const socketio = require('socket.io');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const mongoRouter = require('./mongoRouter');
-const socketRouter = require('./socketRouter')
+const mongoRouter = require('./routers/mongoRouter');
+const socketRouter = require('./routers/socketRouter')
 
 /**
  * MongoDB server
@@ -35,7 +35,8 @@ console.log(mongoUrl);
 mongoose.connect(mongoUrl, {
   useCreateIndex: true,
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  useFindAndModify: false
 }).then(() => {
   console.log("Successfully connected to the Mongo database");
 }).catch(err => {
