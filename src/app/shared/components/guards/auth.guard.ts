@@ -1,8 +1,8 @@
 import {Injectable, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {Observable, Subscription} from 'rxjs';
-import {WebsocketService} from "../services/WebsocketService";
-import {UserService} from "../services/UserService";
+import {WebsocketService} from "../../services/WebsocketService";
+import {UserService} from "../../services/UserService";
 
 @Injectable({
   providedIn: 'root'

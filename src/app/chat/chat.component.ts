@@ -5,9 +5,8 @@ import {MenuItem, MessageService} from "primeng/api";
 import {WebsocketService} from "../shared/services/WebsocketService";
 import {ServerMessage} from "../shared/models/server-message";
 import {UserService} from "../shared/services/UserService";
-import {TextMessage} from "../shared/models/text-message";
 import {DialogService} from "primeng/dynamicdialog";
-import {LoadingComponent} from "../shared/loading/loading.component";
+import {LoadingComponent} from "../shared/components/loading/loading.component";
 
 
 @Component({
@@ -19,11 +18,34 @@ import {LoadingComponent} from "../shared/loading/loading.component";
 export class ChatComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription;
-  public items: MenuItem[] = [];
-  public textChatInput: string;
+  public items: MenuItem[] = [
+    {
+      label: 'Kaya',
+      command: () => {
+        this.avatarSelected('Kaya');
+      }
+    },
+    {
+      label: 'Michelle',
+      command: () => {
+        this.avatarSelected('Michelle');
+      }
+    },
+    {
+      label: 'Upload',
+      icon: 'pi pi-upload',
+      command: () => {
+        this.avatarSelected('Upload');
+      }
+    }
+  ];
+  public menuItemsLabel: string = "Avatars";
+  public textChatInput: string | null;
   public username: any;
   public disableSearch: boolean = false;
   public loadingRef: any;
+  public showTextBox: boolean = false;
+  public selectedChar: string | null;
 
 
   constructor(private route: ActivatedRoute,
@@ -33,6 +55,7 @@ export class ChatComponent implements OnInit, OnDestroy {
               private dialogService: DialogService) {
     this.subscriptions = new Subscription;
     this.textChatInput = "";
+    this.selectedChar = 'Kaya';
   }
 
   ngOnInit(): void {
@@ -63,6 +86,7 @@ export class ChatComponent implements OnInit, OnDestroy {
                   height: '50%',
                   closable: true
                 });
+                this.showTextBox = false;
                 break;
               case 2: // complete
                 this.disableSearch = false;
@@ -76,47 +100,36 @@ export class ChatComponent implements OnInit, OnDestroy {
                   summary:'Info',
                   detail:'Matching completed!'
                 });
+                this.showTextBox = true;
                 break;
               default:
                 break;
             }
           }
         }));
-        this.subscriptions.add(this.webSocketService.textMessageListener.subscribe((msg:TextMessage) => {
-          if(msg)
-            console.log(msg);
-        }));
       } else if (!this.userService.isUserLoggedInBool && this.webSocketService.isConnected) {
         this.webSocketService.disconnectService();
       }
     }
-
-    this.items = [
-      {
-        label: 'Update',
-        icon: 'pi pi-refresh'
-      },
-      {
-        label: 'Delete',
-        icon: 'pi pi-times'
-      },
-      {
-        label: 'Angular',
-        icon: 'pi pi-external-link',
-        url: 'http://angular.io'
-      },
-      {
-        label: 'Router',
-        icon: 'pi pi-upload',
-        routerLink: '/chat/1'
-      }
-    ];
   }
 
   ngOnDestroy() {
     //console.log(`chat component destroyed!!`);
     this.subscriptions.unsubscribe();
     this.userService.roomId = null;
+  }
+
+  avatarSelected(char: string) {
+    if(char === 'Upload') {
+      this.messageService.add({
+        key: 'chat',
+        severity: 'info',
+        summary: 'info',
+        detail: 'Not supported yet :)'
+      });
+    } else {
+      this.selectedChar = char;
+    }
   }
 
   startChat() {
@@ -150,7 +163,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   onTextInputSubmit() {
-    if(this.userService.roomId && this.username) this.webSocketService.emitTextMessage(this.textChatInput, this.username, this.userService.roomId);
+    if(this.userService.roomId && this.username) {
+      this.webSocketService.emitTextMessage(this.textChatInput, this.username, this.userService.roomId);
+      this.textChatInput = null;
+    }
     else console.log("roomId/username is missing");
   }
 

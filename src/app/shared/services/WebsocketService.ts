@@ -83,10 +83,10 @@ export class WebsocketService {
     }
   }
 
-  emitTextMessage(message: string, username: string, roomId: string) {
+  emitTextMessage(message: string | null, username: string, roomId: string) {
     if(this.isConnected && this.socket)
-      if(roomId) {
-        console.log(message, roomId);
+      if(roomId && message) {
+        // console.log(message, roomId);
         this.socket.emit('textChat', new TextMessage(message, username, roomId));
       } else {
         console.log("roomId is missing!");

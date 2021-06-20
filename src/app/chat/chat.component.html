@@ -4,15 +4,11 @@
   <p-toolbar styleClass="py-1 opacity-100 bg-blue-50 border-transparent rounded-full">
     <div class="p-toolbar-group-left z-30">
       <p-button styleClass="rounded-full mx-1"
-                label="Start"
+                label="Join"
                 icon="pi pi-plus"
                 (onClick)="startChat()"
                 [disabled]="disableSearch"></p-button>
-      <p-button label="Upload"
-                icon="pi pi-upload"
-                [disabled]="disableSearch"
-                styleClass="p-button-success rounded-full mx-1"></p-button>
-      <p-splitButton label="Save"
+      <p-splitButton [label]="menuItemsLabel"
                      icon="pi pi-check"
                      [model]="items"
                      [disabled]="disableSearch"
@@ -23,18 +19,15 @@
       <p-button icon="pi pi-search"
                 styleClass="rounded-full mx-1"
                 [disabled]="disableSearch"></p-button>
-      <p-button icon="pi pi-calendar"
-                [disabled]="disableSearch"
-                styleClass="p-button-success rounded-full mx-1"></p-button>
       <p-button icon="pi pi-times"
                 [disabled]="disableSearch"
                 styleClass="p-button-danger rounded-full mx-1"></p-button>
     </div>
   </p-toolbar>
-  <app-canvas class="absolute inset-0 flex z-10"></app-canvas>
+  <app-canvas [selectedChar]="selectedChar" class="absolute inset-0 flex z-10"></app-canvas>
 </div>
 
-<div class="flex absolute insert-x-0 bottom-20 z-30 w-full justify-center">
+<div *ngIf="showTextBox" class="flex absolute insert-x-0 bottom-20 z-30 w-full justify-center">
   <input type="text"
          pInputText
          style="width:50vw;

@@ -29,7 +29,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.camera.position.z = 40;
     this.camera.position.y = 10;
     this.GLTFLoader.load(
-      'assets/static/totoro.glb',
+      'assets/static/characters/totoro.glb',
       (gltf => {
         //console.log(gltf);
         this.mesh = gltf.scene.children[0];

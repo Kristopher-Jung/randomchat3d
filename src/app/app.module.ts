@@ -6,7 +6,7 @@ import {ChatComponent} from './chat/chat.component';
 import {VoiceComponent} from './chat/voice/voice.component';
 import {CanvasComponent} from './chat/canvas/canvas.component';
 import {FooterComponent} from './home/footer/footer.component';
-import {PageNotFoundComponent} from './shared/page-not-found/page-not-found.component';
+import {PageNotFoundComponent} from './shared/components/page-not-found/page-not-found.component';
 import {HeaderComponent} from './home/header/header.component';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
@@ -22,7 +22,7 @@ import {WebsocketService} from "./shared/services/WebsocketService";
 import {LoginComponent} from "./login/login.component";
 import {UserService} from "./shared/services/UserService";
 import {ProfileComponent} from './login/profile/profile.component';
-import {PageNotAuthorizedComponent} from './shared/page-not-authorized/page-not-authorized.component';
+import {PageNotAuthorizedComponent} from './shared/components/page-not-authorized/page-not-authorized.component';
 import {DividerModule} from "primeng/divider";
 import {CardModule} from "primeng/card";
 import {PasswordModule} from "primeng/password";
@@ -34,7 +34,8 @@ import {ProgressSpinnerModule} from "primeng/progressspinner";
 import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
 import {HttpInterceptor} from "./shared/interceptors/http-interceptor";
 import {ToastModule} from "primeng/toast";
-import { LoadingComponent } from './shared/loading/loading.component';
+import { LoadingComponent } from './shared/components/loading/loading.component';
+import {AvatarController} from "./shared/avatars/AvatarController";
 
 @NgModule({
   declarations: [
@@ -78,6 +79,7 @@ import { LoadingComponent } from './shared/loading/loading.component';
     WebsocketService,
     UserService,
     MessageService,
+    AvatarController,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: HttpInterceptor,
