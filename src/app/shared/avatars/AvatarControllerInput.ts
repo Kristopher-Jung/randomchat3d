@@ -17,7 +17,6 @@ export class AvatarControllerInput {
   }
 
   onKeyDown(event: any) {
-    console.log("avatar control!");
     switch(event.keyCode) {
       case 87: //w
         this.keys.forward = true;

@@ -2,23 +2,47 @@ import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
 import {Injectable} from "@angular/core";
 import * as THREE from "three";
 import {AvatarControllerInput} from "./AvatarControllerInput";
-import {Subject} from "rxjs";
+import {BehaviorSubject, Subject} from "rxjs";
 
 @Injectable()
 export class AvatarController {
 
-  public FBXLoader = new FBXLoader();
-  public animLoader = new FBXLoader();
-  public loadingManager = new THREE.LoadingManager();
-  public mixer: any;
-  public chars = new Map<string, any>();
-  public animations = new Map();
+  public loadingManager: any;
+  public loader: any;
+  public chars: any[] = [];
+  public animations = new Map<string, Map<string, any>>();
+  public mixers = new Map<string ,any>();
   public avatarControllerInput: any;
-  public loadListener = new Subject<boolean>();
+  public loadingProgressListener = new Subject<{message:string; progress:number}>();
+  public assetLoadCompleted = new BehaviorSubject(false);
 
   constructor() {
+    this.loadingManager = new THREE.LoadingManager();
+    this.loader = new FBXLoader(this.loadingManager);
+    this.addLoadingManagerListener();
+  }
+
+  addLoadingManagerListener() {
+    this.loadingManager.onStart = (url: string, itemsLoaded: string, itemsTotal: string) => {
+      const message = 'Started loading file: ' + url;
+      const progress = +itemsLoaded/+itemsTotal*100;
+      this.loadingProgressListener.next({message, progress});
+    };
     this.loadingManager.onLoad = () => {
-      console.log("animation loaded");
+      const message = 'Loading Complete!';
+      const progress = 100;
+      this.loadingProgressListener.next({message, progress});
+      this.assetLoadCompleted.next(true);
+    };
+    this.loadingManager.onProgress = (url: string, itemsLoaded: string, itemsTotal: string) => {
+      const message = 'Started loading file: ' + url;
+      const progress = +itemsLoaded/+itemsTotal*100;
+      this.loadingProgressListener.next({message, progress});
+    };
+    this.loadingManager.onError = (url: string) => {
+      const message = 'There was an error loading ' + url;
+      const progress = 100;
+      this.loadingProgressListener.next({message, progress});
     };
   }
 
@@ -26,32 +50,41 @@ export class AvatarController {
     this.avatarControllerInput = new AvatarControllerInput(document);
   };
 
-  loadChar(username: string, char: string): void {
-    this.chars.delete(username);
-    console.log(username, char);
-    this.FBXLoader.setPath(`assets/static/characters/`);
-    this.FBXLoader.load(`${char}.fbx`, fbx => {
-      fbx.scale.setScalar(1);
-      fbx.traverse(c => {
-        c.castShadow = true;
-      });
-      // console.log(fbx);
-      fbx.name = username;
-      this.chars.set(username, fbx);
-      this.animLoader.setPath(`assets/static/animations/`);
-      this.animLoader.load('walk.fbx', (anim) => {
-        this.mixer = new THREE.AnimationMixer(fbx);
-        const clip = anim.animations[0];
-        const action = this.mixer.clipAction(clip);
-        this.animations.set('walk', {
-          clip: clip,
-          action: action
+  load(): void {
+    this.loader.setPath(`assets/static/characters/`);
+    const charsList = ['Kaya', 'Michelle'];
+    this.chars = [];
+    this.animations = new Map<string, Map<string, any>>();
+    this.mixers = new Map<string, any>();
+    charsList.forEach((charname) => {
+      setTimeout(()=>{
+        this.loader.load(`${charname}.fbx`, (fbx: { scale: { setScalar: (arg0: number) => void; }; traverse: (arg0: (c: any) => void) => void; name: string; }) => {
+          fbx.scale.setScalar(1);
+          fbx.traverse(c => {
+            c.castShadow = true;
+          });
+          fbx.name = charname
+          this.chars.push(fbx);
+          this.loadAnims(fbx);
         });
-        console.log("load char/anim completed!");
-        // console.log(this.chars);
-        // console.log(this.animations);
-        this.loadListener.next(true);
-      });
+      },0);
+    });
+  }
+
+  loadAnims(fbx: any): void {
+    this.loader.setPath(`assets/static/animations/`);
+    const animsList = ['idle', 'left', 'right', 'walk'];
+    this.animations.set(fbx.name, new Map<string, any>());
+    this.mixers.set(fbx.name, new THREE.AnimationMixer(fbx));
+    animsList.forEach((name) => {
+      setTimeout(()=>{
+        this.loader.load(`${name}.fbx`, (anim: { animations: any[]; }) => {
+          const mixer = this.mixers.get(fbx.name);
+          const clip = anim.animations[0];
+          const action = mixer.clipAction(clip);
+          this.animations.get(fbx.name)?.set(name, action);
+        });
+      },0);
     });
   }
 

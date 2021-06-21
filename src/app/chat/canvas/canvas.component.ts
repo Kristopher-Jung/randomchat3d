@@ -10,8 +10,6 @@ import {
   ViewChild
 } from '@angular/core';
 import * as THREE from 'three';
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
-import * as dat from 'dat.gui';
 import {WebsocketService} from "../../shared/services/WebsocketService";
 import {Subscription} from "rxjs";
 import {TextMessage} from "../../shared/models/text-message";
@@ -35,69 +33,126 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   public mesh: any = null;
   public loader = new THREE.FontLoader();
   public GLTFLoader = new GLTFLoader();
-  public mixer: any = null;
   private subscriptions = new Subscription();
   public font: any = null;
   public messages: string[] = [];
   private interval: any;
-  private clock: any = null;
+  private clock: any = new THREE.Clock();
+  private characterObjs: any[] = [];
+  private characterAnims: any;
+  private currentCharacter: any;
+  private currCharAction: any;
+  private mixers: any;
 
   constructor(private userService: UserService, private webSocketService: WebsocketService, private avatarController: AvatarController) {
     this.loader.load('assets/static/font/helvetiker_regular.typeface.json', font => {
       this.font = font;
     });
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color( 'white' );
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
-    const light = new THREE.AmbientLight(new THREE.Color('white'), 1);
-    // ground
-    const ground = new THREE.Mesh( new THREE.PlaneGeometry( 1000, 1000 ), new THREE.MeshPhongMaterial( { color: 'black', depthWrite: false } ) );
-    ground.rotation.x = - Math.PI / 2;
-    ground.receiveShadow = true;
-    this.scene.add(ground);
-    this.scene.add(light);
-    const axesHelper = new THREE.AxesHelper(100);
-    this.scene.add(axesHelper);
-    this.camera.position.z = 500;
-    this.camera.position.y = 100;
-    if(this.userService.userName && this.selectedChar) {
-      this.avatarController.loadChar(this.userService.userName, this.selectedChar);
-      this.avatarController.loadListener.subscribe(status => {
-        if(status) {
-          if(this.userService.userName) {
-            const fbx = this.avatarController.chars.get(this.userService.userName);
-            const anim = this.avatarController.animations.get('walk');
-            this.mixer = this.avatarController.mixer;
-            anim.action.play();
-            console.log(fbx);
-            this.scene.add(fbx);
-            this.clock = new THREE.Clock();
-          }
-        }
-      });
+    this.scene.background = new THREE.Color('black');
+  }
+
+  ngOnInit() {
+    if (this.userService.userName) {
+      this.avatarController.load();
     }
+    this.subscriptions.add(this.webSocketService.textMessageListener.subscribe((msg: TextMessage) => {
+      if (msg)
+        console.log(msg);
+      this.showMessage(msg.textMessage);
+    }));
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     const selectedChar = changes.selectedChar.currentValue;
-    if(selectedChar) {
+    if (selectedChar) {
       //TODO
+      console.log(selectedChar);
     }
   }
 
   ngAfterViewInit() {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.rendererContainer.nativeElement.appendChild(this.renderer.domElement);
-    this.animate();
+    this.subscriptions.add(this.avatarController.assetLoadCompleted.subscribe(status => {
+      if (status) {
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+        const light = new THREE.AmbientLight(new THREE.Color('white'), 1);
+        // ground
+        const ground = new THREE.Mesh(
+          new THREE.PlaneGeometry(1000, 1000),
+          new THREE.MeshPhongMaterial({color: 'white', depthWrite: false})
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        this.scene.add(ground);
+        this.scene.add(light);
+        const axesHelper = new THREE.AxesHelper(200);
+        this.scene.add(axesHelper);
+        this.camera.position.z = 500;
+        this.camera.position.y = 100;
+        if (this.userService.userName) {
+          this.characterObjs = this.avatarController.chars;
+          if (this.characterObjs) {
+            this.currentCharacter = this.characterObjs.filter(
+              fbx => fbx.name == this.selectedChar
+            )[0];
+            this.scene.add(this.currentCharacter);
+            this.characterAnims = this.avatarController.animations;
+            this.characterAnims.get(this.currentCharacter.name).forEach((action: any)=>{
+              action.enabled = false;
+              action.play();
+            });
+            if(this.characterAnims) {
+              this.mixers = this.avatarController.mixers;
+              this.currCharAction = this.characterAnims.get(this.currentCharacter.name).get('idle');
+              // this.currCharAction.play();
+              this.avatarController.controllerInputInit(document);
+              this.animate();
+            }
+          }
+        }
+      }
+    }));
   }
 
-  ngOnInit() {
-    this.avatarController.controllerInputInit(document);
-    this.subscriptions.add(this.webSocketService.textMessageListener.subscribe((msg: TextMessage) => {
-      if (msg)
-        console.log(msg);
-      this.showMessage(msg.textMessage);
-    }));
+  animate() {
+    window.requestAnimationFrame(() => this.animate());
+    if (this.mixers && this.clock && this.selectedChar) {
+      let mixerUpdateDelta = this.clock.getDelta();
+      this.mixers.get(this.selectedChar).update(mixerUpdateDelta);
+    }
+    const keyInput = this.avatarController.avatarControllerInput.keys;
+    this.handleKeyInput(keyInput);
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  handleKeyInput(keyInput: any) {
+    if(keyInput.forward){
+      this.currCharAction.enabled = false;
+      this.currCharAction = this.characterAnims.get(this.selectedChar).get('walk');
+      this.currentCharacter.position.z +=3;
+      this.currCharAction.enabled = true;
+    } else if(!keyInput.forward) {
+      this.currCharAction.enabled = false;
+      this.currCharAction = this.characterAnims.get(this.selectedChar).get('idle');
+      this.currCharAction.enabled = true;
+    }
+    if(keyInput.left){
+
+    }
+    if(keyInput.backward){
+
+    }
+    if(keyInput.right){
+      this.currentCharacter.rotation.y +=1;
+    }
+    if(keyInput.space){
+
+    }
+    if(keyInput.shift){
+
+    }
   }
 
   showMessage(message: string) {
@@ -137,15 +192,6 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
         }
       }
     }, 5000);
-  }
-
-  animate() {
-    window.requestAnimationFrame(() => this.animate());
-    if(this.mixer && this.clock) {
-      let mixerUpdateDelta = this.clock.getDelta();
-      this.mixer.update(mixerUpdateDelta);
-    }
-    this.renderer.render(this.scene, this.camera);
   }
 
   @HostListener('window:resize', ['$event'])

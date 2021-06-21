@@ -6,7 +6,7 @@ import {WebsocketService} from "../shared/services/WebsocketService";
 import {ServerMessage} from "../shared/models/server-message";
 import {UserService} from "../shared/services/UserService";
 import {DialogService} from "primeng/dynamicdialog";
-import {LoadingComponent} from "../shared/components/loading/loading.component";
+import {AvatarController} from "../shared/avatars/AvatarController";
 
 
 @Component({
@@ -43,18 +43,20 @@ export class ChatComponent implements OnInit, OnDestroy {
   public textChatInput: string | null;
   public username: any;
   public disableSearch: boolean = false;
-  public loadingRef: any;
   public showTextBox: boolean = false;
   public selectedChar: string | null;
+  public loadingMessage: string = "Searching...";
+  public currProgress: number = 0;
+  public isAssetsLoadCompleted: boolean = true;
 
 
   constructor(private route: ActivatedRoute,
               private webSocketService: WebsocketService,
               private userService: UserService,
               private messageService: MessageService,
-              private dialogService: DialogService) {
+              public avatarController: AvatarController) {
     this.subscriptions = new Subscription;
-    this.textChatInput = "";
+    this.textChatInput = null;
     this.selectedChar = 'Kaya';
   }
 
@@ -75,30 +77,23 @@ export class ChatComponent implements OnInit, OnDestroy {
                   key:'chat',
                   severity:'info',
                   summary:'Info',
-                  detail:`${msg.text}[${msg.time}]`
+                  detail:`${msg.text}[${msg.time}]`,
+                  life: 1000
                 });
                 break;
               case 1: // await
                 this.disableSearch = true;
-                this.loadingRef = this.dialogService.open(LoadingComponent, {
-                  data: 'Waiting someone to join....',
-                  width: '50%',
-                  height: '50%',
-                  closable: true
-                });
+                this.loadingMessage = "Searching...";
                 this.showTextBox = false;
                 break;
               case 2: // complete
                 this.disableSearch = false;
-                if(this.loadingRef) {
-                  this.loadingRef.close();
-                  this.loadingRef = null;
-                }
                 this.messageService.add({
                   key:'chat',
                   severity:'info',
                   summary:'Info',
-                  detail:'Matching completed!'
+                  detail:'Matching completed!',
+                  life: 1000
                 });
                 this.showTextBox = true;
                 break;
@@ -111,6 +106,20 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.webSocketService.disconnectService();
       }
     }
+    this.subscriptions.add(this.avatarController.loadingProgressListener.subscribe((progress:{message:string, progress:number})=> {
+      setTimeout(() => {
+        if(progress) {
+          if(progress.progress < 100) {
+            this.loadingMessage = progress.message;
+            this.currProgress = progress.progress;
+          } else {
+          }
+        }
+      },0);
+    }));
+    this.subscriptions.add(this.avatarController.assetLoadCompleted.subscribe(status => {
+      this.isAssetsLoadCompleted = status;
+    }));
   }
 
   ngOnDestroy() {

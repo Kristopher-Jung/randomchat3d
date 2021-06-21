@@ -68,7 +68,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscriptions.add(this.userService.isUserLoggedIn.subscribe((status: boolean) => {
       this.enableBackground = !status;
-      console.log("enableBackground:" + this.enableBackground);
+      // console.log("enableBackground:" + this.enableBackground);
       setTimeout(() => {
         if (this.enableBackground && this.rendererContainer) {
           this.renderer = new THREE.WebGLRenderer({

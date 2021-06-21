@@ -1,5 +1,14 @@
 <p-toast key ="chat" position="center"></p-toast>
 <div class="relative">
+  <div class="z-30 absolute w-3/4 my-40 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+    <h5 *ngIf="disableSearch"> {{loadingMessage}} </h5>
+    <p-progressBar *ngIf="disableSearch"
+                   mode="indeterminate"></p-progressBar>
+
+    <h5 *ngIf="!isAssetsLoadCompleted" class="text-white"> {{loadingMessage}} </h5>
+    <p-progressBar *ngIf="!isAssetsLoadCompleted"
+                   [value]="currProgress"></p-progressBar>
+  </div>
   <!-- tailwindClass should be used in styleClass for primeng components-->
   <p-toolbar styleClass="py-1 opacity-100 bg-blue-50 border-transparent rounded-full">
     <div class="p-toolbar-group-left z-30">
@@ -7,11 +16,11 @@
                 label="Join"
                 icon="pi pi-plus"
                 (onClick)="startChat()"
-                [disabled]="disableSearch"></p-button>
+                [disabled]="disableSearch || !isAssetsLoadCompleted"></p-button>
       <p-splitButton [label]="menuItemsLabel"
                      icon="pi pi-check"
                      [model]="items"
-                     [disabled]="disableSearch"
+                     [disabled]="disableSearch || !isAssetsLoadCompleted"
                      styleClass="p-button-warning rounded-full mx-1"></p-splitButton>
     </div>
 
