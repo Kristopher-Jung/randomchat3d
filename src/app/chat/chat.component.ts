@@ -26,9 +26,9 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     },
     {
-      label: 'Michelle',
+      label: 'Claire',
       command: () => {
-        this.avatarSelected('Michelle');
+        this.avatarSelected('Claire');
       }
     },
     {
@@ -85,6 +85,7 @@ export class ChatComponent implements OnInit, OnDestroy {
                 this.disableSearch = true;
                 this.loadingMessage = "Searching...";
                 this.showTextBox = false;
+                this.webSocketService.userMatched.next(false);
                 break;
               case 2: // complete
                 this.disableSearch = false;
@@ -95,6 +96,7 @@ export class ChatComponent implements OnInit, OnDestroy {
                   detail:'Matching completed!',
                   life: 1000
                 });
+                this.webSocketService.userMatched.next(true);
                 this.showTextBox = true;
                 break;
               default:

@@ -15,6 +15,7 @@ export class WebsocketService {
   public serverMessageListener: Subject<ServerMessage> = new Subject();
   public textMessageListener: Subject<TextMessage> = new Subject<TextMessage>();
   public isConnected: boolean
+  public userMatched = new BehaviorSubject(false);
 
   constructor() {
     this.socket = null;

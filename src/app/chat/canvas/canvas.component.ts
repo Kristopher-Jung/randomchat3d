@@ -16,6 +16,7 @@ import {TextMessage} from "../../shared/models/text-message";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 import {AvatarController} from "../../shared/avatars/AvatarController";
 import {UserService} from "../../shared/services/UserService";
+import {StateHandler} from "../../shared/avatars/Statehandler";
 
 @Component({
   selector: 'app-canvas',
@@ -25,14 +26,17 @@ import {UserService} from "../../shared/services/UserService";
 export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChanges {
 
   @ViewChild('rendererContainer') rendererContainer: any;
-  @Input('selectedChar') selectedChar: string | null = 'Kaya';
+  @Input('selectedChar') selectedChar: any;
 
+  // three.js components
   public renderer = new THREE.WebGLRenderer();
   public scene: any = null;
   public camera: any = null;
   public mesh: any = null;
+  // loaders
   public loader = new THREE.FontLoader();
   public GLTFLoader = new GLTFLoader();
+  //variables
   private subscriptions = new Subscription();
   public font: any = null;
   public messages: string[] = [];
@@ -41,10 +45,15 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   private characterObjs: any[] = [];
   private characterAnims: any;
   private currentCharacter: any;
-  private currCharAction: any;
   private mixers: any;
+  // handler
+  private stateHandler: StateHandler | null | undefined;
+  private animationFrameId: any;
+  private pause: boolean = false;
 
-  constructor(private userService: UserService, private webSocketService: WebsocketService, private avatarController: AvatarController) {
+  constructor(private userService: UserService,
+              private webSocketService: WebsocketService,
+              private avatarController: AvatarController) {
     this.loader.load('assets/static/font/helvetiker_regular.typeface.json', font => {
       this.font = font;
     });
@@ -66,8 +75,14 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   ngOnChanges(changes: SimpleChanges): void {
     const selectedChar = changes.selectedChar.currentValue;
     if (selectedChar) {
-      //TODO
-      console.log(selectedChar);
+      const prevChar = this.currentCharacter;
+      this.selectedChar = selectedChar;
+      this.currentCharacter = this.characterObjs.filter(
+        fbx => fbx.name == this.selectedChar
+      )[0];
+      if(this.currentCharacter) {
+        this.addCharacterToScene(this.currentCharacter, prevChar);
+      }
     }
   }
 
@@ -81,7 +96,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
         // ground
         const ground = new THREE.Mesh(
           new THREE.PlaneGeometry(1000, 1000),
-          new THREE.MeshPhongMaterial({color: 'white', depthWrite: false})
+          new THREE.MeshPhongMaterial({color: 0x999999, depthWrite: false})
         );
         ground.rotation.x = -Math.PI / 2;
         ground.receiveShadow = true;
@@ -97,61 +112,61 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
             this.currentCharacter = this.characterObjs.filter(
               fbx => fbx.name == this.selectedChar
             )[0];
-            this.scene.add(this.currentCharacter);
-            this.characterAnims = this.avatarController.animations;
-            this.characterAnims.get(this.currentCharacter.name).forEach((action: any)=>{
-              action.enabled = false;
-              action.play();
-            });
-            if(this.characterAnims) {
-              this.mixers = this.avatarController.mixers;
-              this.currCharAction = this.characterAnims.get(this.currentCharacter.name).get('idle');
-              // this.currCharAction.play();
-              this.avatarController.controllerInputInit(document);
+            if(this.currentCharacter) {
+              this.addCharacterToScene(this.currentCharacter, null);
               this.animate();
             }
           }
         }
       }
     }));
+
+    this.subscriptions.add(this.webSocketService.userMatched.subscribe(status => {
+      console.log(status);
+      if(status) { // another user is connected
+        //TODO add another user character and a stateHandler for it
+      } else { // another user is dced
+        //TODO remove another user and another stateHandler for it
+      }
+    }));
+  }
+
+  addCharacterToScene(character: any, prevChar: any) {
+    if(this.currentCharacter) {
+      if (prevChar) {
+        this.scene.remove(prevChar);
+      }
+      this.currentCharacter = character;
+      this.currentCharacter.position.set(0,0,0);
+      this.currentCharacter.receiveShadow = true;
+      this.scene.add(this.currentCharacter);
+      this.characterAnims = this.avatarController.animations;
+      this.characterAnims.get(this.currentCharacter.name).forEach((action: any) => {
+        action.enabled = false;
+      });
+      if (this.characterAnims) {
+        this.mixers = this.avatarController.mixers;
+        // this.characterAnims.get(this.currentCharacter.name).get('idle').play();
+        this.stateHandler = new StateHandler(this.mixers.get(this.currentCharacter.name),
+          this.characterAnims.get(this.currentCharacter.name),
+          this.currentCharacter);
+        this.avatarController.controllerInputInit(document);
+      }
+    }
   }
 
   animate() {
-    window.requestAnimationFrame(() => this.animate());
-    if (this.mixers && this.clock && this.selectedChar) {
-      let mixerUpdateDelta = this.clock.getDelta();
-      this.mixers.get(this.selectedChar).update(mixerUpdateDelta);
-    }
-    const keyInput = this.avatarController.avatarControllerInput.keys;
-    this.handleKeyInput(keyInput);
-    this.renderer.render(this.scene, this.camera);
-  }
-
-  handleKeyInput(keyInput: any) {
-    if(keyInput.forward){
-      this.currCharAction.enabled = false;
-      this.currCharAction = this.characterAnims.get(this.selectedChar).get('walk');
-      this.currentCharacter.position.z +=3;
-      this.currCharAction.enabled = true;
-    } else if(!keyInput.forward) {
-      this.currCharAction.enabled = false;
-      this.currCharAction = this.characterAnims.get(this.selectedChar).get('idle');
-      this.currCharAction.enabled = true;
-    }
-    if(keyInput.left){
-
-    }
-    if(keyInput.backward){
-
-    }
-    if(keyInput.right){
-      this.currentCharacter.rotation.y +=1;
-    }
-    if(keyInput.space){
-
-    }
-    if(keyInput.shift){
-
+    if (this.pause) {
+      return;
+    } else {
+      this.animationFrameId = window.requestAnimationFrame(() => this.animate());
+      if (this.mixers && this.clock && this.selectedChar) {
+        let mixerUpdateDelta = this.clock.getDelta();
+        this.mixers.get(this.selectedChar).update(mixerUpdateDelta);
+      }
+      const keyInput = this.avatarController.avatarControllerInput.keys;
+      this.stateHandler?.handleKeyInput(keyInput);
+      this.renderer.render(this.scene, this.camera);
     }
   }
 
@@ -200,7 +215,10 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   }
 
   ngOnDestroy() {
+    this.pause = true;
+    window.cancelAnimationFrame(this.animationFrameId);
     this.subscriptions.unsubscribe();
+    this.avatarController.assetLoadCompleted.next(false);
   }
 
 }

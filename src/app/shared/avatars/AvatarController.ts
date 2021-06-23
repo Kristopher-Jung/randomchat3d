@@ -52,7 +52,7 @@ export class AvatarController {
 
   load(): void {
     this.loader.setPath(`assets/static/characters/`);
-    const charsList = ['Kaya', 'Michelle'];
+    const charsList = ['Kaya', 'Claire'];
     this.chars = [];
     this.animations = new Map<string, Map<string, any>>();
     this.mixers = new Map<string, any>();
@@ -73,7 +73,7 @@ export class AvatarController {
 
   loadAnims(fbx: any): void {
     this.loader.setPath(`assets/static/animations/`);
-    const animsList = ['idle', 'left', 'right', 'walk'];
+    const animsList = ['idle', 'walk'];
     this.animations.set(fbx.name, new Map<string, any>());
     this.mixers.set(fbx.name, new THREE.AnimationMixer(fbx));
     animsList.forEach((name) => {
@@ -82,6 +82,7 @@ export class AvatarController {
           const mixer = this.mixers.get(fbx.name);
           const clip = anim.animations[0];
           const action = mixer.clipAction(clip);
+          action.name = name;
           this.animations.get(fbx.name)?.set(name, action);
         });
       },0);
