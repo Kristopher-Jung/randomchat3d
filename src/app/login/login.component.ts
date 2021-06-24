@@ -34,6 +34,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.userService.login(this.username, this.password).subscribe(res => {
       if(res && !res.message) {
         this.userService.userName = this.username;
+        this.userService.selectedChar = res.character;
         this.userService.isUserLoggedIn.next(true);
         this.userService.isUserLoggedInBool = true;
       } else {

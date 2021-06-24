@@ -14,6 +14,7 @@ export class UserService {
   public isUserLoggedIn = new BehaviorSubject<boolean>(false);
   public isUserLoggedInBool: boolean = false;
   public userName: string | null;
+  public selectedChar: any;
   private readonly connectionUrl;
   public roomId: string | null;
 
@@ -27,6 +28,13 @@ export class UserService {
     }
     this.connectionUrl = environment.m_url;
     //console.log(this.connectionUrl);
+  }
+
+  cleanUp() {
+    this.userName = null;
+    this.selectedChar = null;
+    this.roomId = null;
+    this.isUserLoggedInBool = false;
   }
 
   signUp(username:string, password:string): Observable<any> {
@@ -83,4 +91,15 @@ export class UserService {
     headers.set('Access-Control-Allow-Origin', '*');
     return this.http.get<any>(full_String, requestOptions);
   }
+
+  updateChar(username:string, char:string): Observable<any> {
+    const full_String = `${this.connectionUrl}/user/updateChar/${username}/${char}`;
+    const headers = new HttpHeaders();
+    const requestOptions = {
+      headers: headers
+    };
+    headers.set('Access-Control-Allow-Origin', '*');
+    return this.http.get<any>(full_String, requestOptions);
+  }
+
 }

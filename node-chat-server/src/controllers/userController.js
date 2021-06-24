@@ -36,8 +36,10 @@ exports.createUser = (req, res) => {
         } else {
           const user = new UserModel({
             username: req.params.username,
+            character: 'Kaya',
             password: hash,
-            roomId: null
+            roomId: null,
+            activeInd: false
           });
           user.save()
             .then(data => {
@@ -61,6 +63,7 @@ exports.createUser = (req, res) => {
 
 exports.authUser = (req, res) => {
   const password = req.body.password;
+  console.log(password);
   if (!password) {
     return res.send.send({
       message: "User needs to set password"
@@ -72,17 +75,18 @@ exports.authUser = (req, res) => {
       });
     }
   }
-  UserModel.find({ username: req.params.username }).then(users => {
-    if(users.length > 1) {
-      return res.status(500).send({
-        message: `More than one user found given username:${req.params.username}`
-      });
-    } else if(users.length === 0) {
+  UserModel.findOneAndUpdate({ username: req.params.username }, {activeInd: true}).then(user => {
+    if(!user) {
       return res.send({
-        message: `No user found for username${req.params.username}`
+        message: `No user found for username: ${req.params.username}`
       });
+    } else {
+      if(user.activeInd) {
+        return res.send({
+          message: `username: ${req.params.username} is already logged in!`
+        });
+      }
     }
-    const user = users[0];
     bcrypt.compare(password, user.password, function (error, isMatch) {
       if (error) {
         return res.status(500).send({
@@ -94,16 +98,39 @@ exports.authUser = (req, res) => {
         });
       } else {
         return res.send({
-          message: null
+          message: null,
+          character: user.character
         });
       }
     });
   }).catch(err => {
-    console.log(err);
     return res.status(500).send({
       message: "unexpected MongoDB error caught: " + err.message
     });
   });
+};
+
+exports.updateChar = (req, res) => {
+  const username = req.params.username;
+  const char = req.params.char;
+  console.log(`Update char for username:${username}, char:${char}`)
+  UserModel.findOneAndUpdate({username: username}, {character: char}, {new: true},
+    (err, doc) => {
+      if (err) {
+        return res.status(500).send({
+          message: `couldn't update char due to mongoDB error, char:${char}, username:${username}`
+        });
+      } else {
+        if(doc) {
+          // console.log(doc);
+          return res.send(doc);
+        } else {
+          return res.send({
+            message: `User not found, username:${username}`
+          });
+        }
+      }
+    });
 };
 
 exports.createChat = (req, res) => {
@@ -130,7 +157,7 @@ exports.createChat = (req, res) => {
 
 exports.leaveChat = (req, res) => {
   const username = req.params.username;
-  UserModel.findOneAndUpdate({username: username}, {roomId: null}, {new: true},
+  UserModel.findOneAndUpdate({username: username}, {roomId: null, activeInd: false}, {new: true},
     (err, doc) => {
       if (err) {
         return res.status(500).send({

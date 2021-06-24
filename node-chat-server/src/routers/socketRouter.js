@@ -26,7 +26,8 @@ const router = function (socket, io, clientUsername) {
     ControllerEnum.DISPLAY));
   io.emit(SERVER, formatMessage(null, null, connectCount, ControllerEnum.SOCKET_STAT));
 
-  socket.on('joinRoom', (roomId) => {
+  socket.on('joinRoom', ({roomId, character}) => {
+    console.log(character);
     socket.join(roomId);
     // Broadcast when a user connects to the room
     const numberConnections = io.sockets.adapter.rooms.get(roomId).size;
@@ -43,6 +44,11 @@ const router = function (socket, io, clientUsername) {
       .to(roomId)
       .emit(SERVER, formatMessage(clientUsername,
         roomId, `${clientUsername} has joined the chat room: ${roomId}`, ControllerEnum.DISPLAY));
+
+    socket.broadcast
+      .to(roomId)
+      .emit(SERVER, formatMessage(clientUsername,
+        roomId, character, ControllerEnum.AVATAR_CONTROL));
   });
 
   //when user left room, but did not signOut yet.

@@ -44,7 +44,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   public username: any;
   public disableSearch: boolean = false;
   public showTextBox: boolean = false;
-  public selectedChar: string | null;
+  public selectedChar: string | null = null;
+  public anotherUserChar: string | null = null;
   public loadingMessage: string = "Searching...";
   public currProgress: number = 0;
   public isAssetsLoadCompleted: boolean = true;
@@ -57,7 +58,6 @@ export class ChatComponent implements OnInit, OnDestroy {
               public avatarController: AvatarController) {
     this.subscriptions = new Subscription;
     this.textChatInput = null;
-    this.selectedChar = 'Kaya';
   }
 
   ngOnInit(): void {
@@ -67,6 +67,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       //console.log(username);
       this.username = username;
       if (this.userService.isUserLoggedInBool && !this.webSocketService.isConnected) {
+        this.selectedChar = this.userService.selectedChar;
         this.webSocketService.connectService(this.username);
         this.subscriptions.add(this.webSocketService.serverMessageListener.subscribe((msg: ServerMessage) => {
           if (msg){
@@ -99,6 +100,10 @@ export class ChatComponent implements OnInit, OnDestroy {
                 this.webSocketService.userMatched.next(true);
                 this.showTextBox = true;
                 break;
+              case 5: // AVATAR_CONTROL
+                // console.log("avatar Control rexeived" + msg);
+                this.anotherUserChar = msg.text;
+                break;
               default:
                 break;
             }
@@ -127,7 +132,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     //console.log(`chat component destroyed!!`);
     this.subscriptions.unsubscribe();
-    this.userService.roomId = null;
+    this.userService.cleanUp();
   }
 
   avatarSelected(char: string) {
@@ -140,6 +145,29 @@ export class ChatComponent implements OnInit, OnDestroy {
       });
     } else {
       this.selectedChar = char;
+      if(this.username && char) {
+        this.userService.updateChar(this.username, char).subscribe(res => {
+          if(res) {
+            if(res.message) {
+              this.messageService.add({
+                key: 'chat',
+                severity: 'error',
+                summary: 'Error',
+                detail: res.message
+              });
+            } else {
+              // console.log(res);
+              this.messageService.add({
+                key: 'chat',
+                severity: 'info',
+                summary: 'info',
+                detail: "User\'s character has been updated",
+                life: 500
+              });
+            }
+          }
+        });
+      }
     }
   }
 
@@ -159,7 +187,7 @@ export class ChatComponent implements OnInit, OnDestroy {
             //console.log(roomId);
             this.userService.roomId = roomId;
             if(roomId) {
-              this.webSocketService.joinRoom(roomId);
+              this.webSocketService.joinRoom(roomId, this.userService.selectedChar);
             } else {
               this.messageService.add({
                 key: 'chat',

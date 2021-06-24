@@ -4,7 +4,8 @@ const ControllerEnum = Object.freeze({
   "AWAIT":1,
   "COMPLETE":2,
   "SOCKET_STAT":3,
-  "SERVER_STAT":4
+  "SERVER_STAT":4,
+  "AVATAR_CONTROL":5
 });
 
 function formatMessage(username, roomId, text, controllerEnum) {

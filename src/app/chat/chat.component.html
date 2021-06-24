@@ -33,7 +33,9 @@
                 styleClass="p-button-danger rounded-full mx-1"></p-button>
     </div>
   </p-toolbar>
-  <app-canvas [selectedChar]="selectedChar" class="absolute inset-0 flex z-10"></app-canvas>
+  <app-canvas [selectedChar]="selectedChar"
+              [anotherUserChar]="anotherUserChar"
+              class="absolute inset-0 flex z-10"></app-canvas>
 </div>
 
 <div *ngIf="showTextBox" class="flex absolute insert-x-0 bottom-20 z-30 w-full justify-center">

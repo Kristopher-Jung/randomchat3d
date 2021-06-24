@@ -27,6 +27,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
 
   @ViewChild('rendererContainer') rendererContainer: any;
   @Input('selectedChar') selectedChar: any;
+  @Input('anotherUserChar') anotherUserChar: any;
 
   // three.js components
   public renderer = new THREE.WebGLRenderer();
@@ -73,15 +74,24 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    const selectedChar = changes.selectedChar.currentValue;
-    if (selectedChar) {
-      const prevChar = this.currentCharacter;
-      this.selectedChar = selectedChar;
-      this.currentCharacter = this.characterObjs.filter(
-        fbx => fbx.name == this.selectedChar
-      )[0];
-      if(this.currentCharacter) {
-        this.addCharacterToScene(this.currentCharacter, prevChar);
+    // console.log(changes);
+    if(changes.selectedChar) {
+      const selectedChar = changes.selectedChar.currentValue;
+      if (selectedChar) {
+        const prevChar = this.currentCharacter;
+        this.selectedChar = selectedChar;
+        this.currentCharacter = this.characterObjs.filter(
+          fbx => fbx.name == this.selectedChar
+        )[0];
+        if (this.currentCharacter) {
+          this.addCharacterToScene(this.currentCharacter, prevChar);
+        }
+      }
+    }
+    if(changes.anotherUserChar) {
+      const anotherUserChar = changes.anotherUserChar.currentValue;
+      if (anotherUserChar) {
+        console.log("another User char received: " + anotherUserChar);
       }
     }
   }

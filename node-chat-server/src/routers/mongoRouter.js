@@ -17,6 +17,8 @@ const router = function(app) {
   app.get('/user/leaveChat/:username', userController.leaveChat);
   //join chat room
   app.get('/user/joinChat/:username', userController.joinChat)
+  //Update char
+  app.get('/user/updateChar/:username/:char', userController.updateChar)
 
   // should be the last
   app.get('*', (req, res) => {

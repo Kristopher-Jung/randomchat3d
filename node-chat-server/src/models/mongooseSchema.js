@@ -9,6 +9,10 @@ const userSchema = mongoose.Schema({
       dropDups: true
     }
   },
+  character: {
+    type: String,
+    required: true
+  },
   password: {
     type: String,
     required: true
@@ -16,6 +20,10 @@ const userSchema = mongoose.Schema({
   roomId: {
     type: String,
     required: false
+  },
+  activeInd: {
+    type: Boolean,
+    required: true
   }
 }, {
   timestamps: true

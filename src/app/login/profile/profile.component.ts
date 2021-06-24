@@ -41,8 +41,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         //console.log(res);
         if(!res.roomId) {
           this.websocketService.leaveRoom(this.userService.roomId);
-          this.userService.roomId = null;
           this.userService.logout();
+          this.userService.cleanUp();
           this.userService.isUserLoggedIn.subscribe((status: boolean) => {
             if(!status) {
               this.router.navigate(['']);

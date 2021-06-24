@@ -68,9 +68,9 @@ export class WebsocketService {
     }
   }
 
-  joinRoom(roomId: string) {
+  joinRoom(roomId: string, character: string) {
     if(this.isConnected && this.socket) {
-      this.socket.emit('joinRoom', roomId);
+      this.socket.emit('joinRoom', {roomId, character});
     } else {
       console.log("You should connect to the service first");
     }
