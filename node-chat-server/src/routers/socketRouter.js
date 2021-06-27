@@ -51,6 +51,13 @@ const router = function (socket, io, clientUsername) {
         roomId, character, ControllerEnum.AVATAR_CONTROL));
   });
 
+  socket.on('completeJoinRoom', ({roomId, character}) => {
+    socket.broadcast
+      .to(roomId)
+      .emit(SERVER, formatMessage(clientUsername,
+        roomId, character, ControllerEnum.AVATAR_CONTROL));
+  });
+
   //when user left room, but did not signOut yet.
   socket.on('leaveRoom', (roomId) => {
     console.log(`${clientUsername} is leaving roomId:${roomId}`)
@@ -73,6 +80,13 @@ const router = function (socket, io, clientUsername) {
   socket.on('textChat', ({textMessage, username, roomId}) => {
     io.to(roomId).emit('textChat', {textMessage, username, roomId});
   })
+
+  socket.on('move', ({keyInput, username, roomId}) => {
+    console.log("signal Move!");
+    socket.broadcast
+      .to(roomId)
+      .emit('move', {keyInput, username, roomId});
+  });
 
   // Runs when client disconnects completely (signOut) or close browser/ dced unexpectedly
   socket.on('disconnect', () => {

@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import {WebsocketService} from "../services/WebsocketService";
+import {UserService} from "../services/UserService";
 
 export class StateHandler {
   private decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
@@ -8,10 +10,13 @@ export class StateHandler {
   private walkAction: any;
   private actions: any[];
   private currentAction: any;
+  private signal = false;
 
   constructor(public mixer: any,
               public animations: any,
-              public character: any) {
+              public character: any,
+              private socketService: WebsocketService,
+              private userService: UserService) {
     this.mixer = mixer;
     this.character = character;
     this.idleAction = animations.get('idle');
@@ -21,6 +26,9 @@ export class StateHandler {
     this.mixer.setTime(0);
     this.setWeight(this.idleAction, 1);
     this.idleAction.play();
+    this.socketService.userMatched.subscribe(anotherChar => {
+      this.signal = !!anotherChar;
+    });
   }
 
   unPauseAllActions() {
@@ -77,7 +85,10 @@ export class StateHandler {
     action.setEffectiveWeight(weight);
   }
 
-  handleKeyInput(keyInput: any) {
+  handleKeyInput(keyInput: any, username: any) {
+    if(username === this.userService.userName && this.userService.roomId && this.signal) {
+      this.socketService.signalMove(keyInput, username, this.userService.roomId);
+    }
     if(keyInput.forward) {
       this.prepareCrossFade(this.currentAction, this.walkAction);
       this.character.translateZ(2);

@@ -9,9 +9,9 @@ export class AvatarController {
 
   public loadingManager: any;
   public loader: any;
-  public chars: any[] = [];
-  public animations = new Map<string, Map<string, any>>();
-  public mixers = new Map<string ,any>();
+  public chars = new Map<number, any>();
+  public animations = new Map<number, any>();
+  public mixers = new Map<number ,any>();
   public avatarControllerInput: any;
   public loadingProgressListener = new Subject<{message:string; progress:number}>();
   public assetLoadCompleted = new BehaviorSubject(false);
@@ -53,37 +53,42 @@ export class AvatarController {
   load(): void {
     this.loader.setPath(`assets/static/characters/`);
     const charsList = ['Kaya', 'Claire'];
-    this.chars = [];
-    this.animations = new Map<string, Map<string, any>>();
-    this.mixers = new Map<string, any>();
-    charsList.forEach((charname) => {
+    this.loadHelper(charsList, 0);
+    this.loadHelper(charsList, 1);
+  }
+
+  loadHelper(charsList:any, number: any) {
+    this.animations.set(number, new Map());
+    this.mixers.set(number, new Map());
+    this.chars.set(number, new Map());
+    charsList.forEach((charname:any) => {
       setTimeout(()=>{
-        this.loader.load(`${charname}.fbx`, (fbx: { scale: { setScalar: (arg0: number) => void; }; traverse: (arg0: (c: any) => void) => void; name: string; }) => {
+        this.loader.load(`${charname}.fbx`, (fbx: any) => {
           fbx.scale.setScalar(1);
-          fbx.traverse(c => {
+          fbx.traverse((c:any) => {
             c.castShadow = true;
           });
           fbx.name = charname
-          this.chars.push(fbx);
-          this.loadAnims(fbx);
+          this.chars.get(number)?.set(fbx.name, fbx);
+          this.loadAnims(number, fbx);
         });
       },0);
     });
   }
 
-  loadAnims(fbx: any): void {
+  loadAnims(number:any, fbx: any): void {
     this.loader.setPath(`assets/static/animations/`);
     const animsList = ['idle', 'walk'];
-    this.animations.set(fbx.name, new Map<string, any>());
-    this.mixers.set(fbx.name, new THREE.AnimationMixer(fbx));
+    this.animations.get(number).set(fbx.name, new Map<string, any>());
+    this.mixers.get(number).set(fbx.name, new THREE.AnimationMixer(fbx));
     animsList.forEach((name) => {
       setTimeout(()=>{
         this.loader.load(`${name}.fbx`, (anim: { animations: any[]; }) => {
-          const mixer = this.mixers.get(fbx.name);
+          const mixer = this.mixers.get(number).get(fbx.name);
           const clip = anim.animations[0];
           const action = mixer.clipAction(clip);
           action.name = name;
-          this.animations.get(fbx.name)?.set(name, action);
+          this.animations.get(number).get(fbx.name).set(name, action);
         });
       },0);
     });

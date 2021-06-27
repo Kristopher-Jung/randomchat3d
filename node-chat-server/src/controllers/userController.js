@@ -63,7 +63,7 @@ exports.createUser = (req, res) => {
 
 exports.authUser = (req, res) => {
   const password = req.body.password;
-  console.log(password);
+  // console.log(password);
   if (!password) {
     return res.send.send({
       message: "User needs to set password"

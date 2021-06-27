@@ -1,8 +1,8 @@
 <p-toast key ="chat" position="center"></p-toast>
 <div class="relative">
   <div class="z-30 absolute w-3/4 my-40 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-    <h5 *ngIf="disableSearch"> {{loadingMessage}} </h5>
-    <p-progressBar *ngIf="disableSearch"
+    <h5 *ngIf="userSearchingBegin"> Searching User... </h5>
+    <p-progressBar *ngIf="userSearchingBegin"
                    mode="indeterminate"></p-progressBar>
 
     <h5 *ngIf="!isAssetsLoadCompleted" class="text-white"> {{loadingMessage}} </h5>
@@ -17,24 +17,18 @@
                 icon="pi pi-plus"
                 (onClick)="startChat()"
                 [disabled]="disableSearch || !isAssetsLoadCompleted"></p-button>
+      <p-button icon="pi pi-times"
+                [disabled]="!disableSearch || !isAssetsLoadCompleted"
+                (onClick)="cancelSearch()"
+                styleClass="p-button-danger rounded-full mx-1"></p-button>
       <p-splitButton [label]="menuItemsLabel"
                      icon="pi pi-check"
                      [model]="items"
                      [disabled]="disableSearch || !isAssetsLoadCompleted"
                      styleClass="p-button-warning rounded-full mx-1"></p-splitButton>
     </div>
-
-    <div class="p-toolbar-group-right z-30">
-      <p-button icon="pi pi-search"
-                styleClass="rounded-full mx-1"
-                [disabled]="disableSearch"></p-button>
-      <p-button icon="pi pi-times"
-                [disabled]="disableSearch"
-                styleClass="p-button-danger rounded-full mx-1"></p-button>
-    </div>
   </p-toolbar>
   <app-canvas [selectedChar]="selectedChar"
-              [anotherUserChar]="anotherUserChar"
               class="absolute inset-0 flex z-10"></app-canvas>
 </div>
 

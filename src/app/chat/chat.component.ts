@@ -42,14 +42,16 @@ export class ChatComponent implements OnInit, OnDestroy {
   public menuItemsLabel: string = "Avatars";
   public textChatInput: string | null;
   public username: any;
-  public disableSearch: boolean = false;
-  public showTextBox: boolean = false;
   public selectedChar: string | null = null;
-  public anotherUserChar: string | null = null;
   public loadingMessage: string = "Searching...";
   public currProgress: number = 0;
-  public isAssetsLoadCompleted: boolean = true;
 
+  // booleans
+  public disableSearch: boolean = false;
+  public showTextBox: boolean = false;
+  public isAssetsLoadCompleted: boolean = true;
+  public alreadyCompleted: boolean = false;
+  public userSearchingBegin: boolean = false;
 
   constructor(private route: ActivatedRoute,
               private webSocketService: WebsocketService,
@@ -86,10 +88,12 @@ export class ChatComponent implements OnInit, OnDestroy {
                 this.disableSearch = true;
                 this.loadingMessage = "Searching...";
                 this.showTextBox = false;
-                this.webSocketService.userMatched.next(false);
+                this.webSocketService.userMatched.next(null);
+                this.alreadyCompleted = false;
+                this.userSearchingBegin = true;
                 break;
               case 2: // complete
-                this.disableSearch = false;
+                this.disableSearch = true;
                 this.messageService.add({
                   key:'chat',
                   severity:'info',
@@ -97,12 +101,17 @@ export class ChatComponent implements OnInit, OnDestroy {
                   detail:'Matching completed!',
                   life: 1000
                 });
-                this.webSocketService.userMatched.next(true);
+                this.userSearchingBegin = false;
                 this.showTextBox = true;
                 break;
               case 5: // AVATAR_CONTROL
-                // console.log("avatar Control rexeived" + msg);
-                this.anotherUserChar = msg.text;
+                if(msg.username != this.username && !this.alreadyCompleted) {
+                  if (this.userService.roomId && this.selectedChar) {
+                    this.webSocketService.completeJoinRoom(this.userService.roomId, this.selectedChar);
+                    this.alreadyCompleted = true;
+                    this.webSocketService.userMatched.next(msg.text);
+                  }
+                }
                 break;
               default:
                 break;
@@ -199,6 +208,10 @@ export class ChatComponent implements OnInit, OnDestroy {
           }
         }
       });
+  }
+
+  cancelSearch() {
+
   }
 
   onTextInputSubmit() {

@@ -27,7 +27,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
 
   @ViewChild('rendererContainer') rendererContainer: any;
   @Input('selectedChar') selectedChar: any;
-  @Input('anotherUserChar') anotherUserChar: any;
+  public anotherChar: any;
 
   // three.js components
   public renderer = new THREE.WebGLRenderer();
@@ -43,12 +43,11 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   public messages: string[] = [];
   private interval: any;
   private clock: any = new THREE.Clock();
-  private characterObjs: any[] = [];
+  private characterObjs: any;
   private characterAnims: any;
-  private currentCharacter: any;
   private mixers: any;
-  // handler
-  private stateHandler: StateHandler | null | undefined;
+  private stateHandlers = new Map<number, StateHandler>();
+  // animation frame
   private animationFrameId: any;
   private pause: boolean = false;
 
@@ -67,31 +66,27 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
       this.avatarController.load();
     }
     this.subscriptions.add(this.webSocketService.textMessageListener.subscribe((msg: TextMessage) => {
-      if (msg)
-        console.log(msg);
-      this.showMessage(msg.textMessage);
+      if (msg) {
+        // console.log(msg);
+        this.showMessage(msg.textMessage, msg.username);
+      }
     }));
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // console.log(changes);
-    if(changes.selectedChar) {
-      const selectedChar = changes.selectedChar.currentValue;
-      if (selectedChar) {
-        const prevChar = this.currentCharacter;
-        this.selectedChar = selectedChar;
-        this.currentCharacter = this.characterObjs.filter(
-          fbx => fbx.name == this.selectedChar
-        )[0];
-        if (this.currentCharacter) {
-          this.addCharacterToScene(this.currentCharacter, prevChar);
+    if (!changes.selectedChar.firstChange && changes.selectedChar) {
+      if (changes.selectedChar.previousValue !== changes.selectedChar.currentValue) {
+        const selectedChar = changes.selectedChar.currentValue;
+        const prevChar = changes.selectedChar.previousValue;
+        if (selectedChar != prevChar && this.characterObjs) {
+          const prev = this.characterObjs.get(0).get(prevChar);
+          this.selectedChar = selectedChar;
+          const currentCharacter = this.characterObjs.get(0).get(this.selectedChar);
+          if (currentCharacter) {
+            this.addCharacterToScene(currentCharacter, prev, 0);
+            this.userService.selectedChar = this.selectedChar;
+          }
         }
-      }
-    }
-    if(changes.anotherUserChar) {
-      const anotherUserChar = changes.anotherUserChar.currentValue;
-      if (anotherUserChar) {
-        console.log("another User char received: " + anotherUserChar);
       }
     }
   }
@@ -116,50 +111,71 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
         this.scene.add(axesHelper);
         this.camera.position.z = 500;
         this.camera.position.y = 100;
-        if (this.userService.userName) {
-          this.characterObjs = this.avatarController.chars;
-          if (this.characterObjs) {
-            this.currentCharacter = this.characterObjs.filter(
-              fbx => fbx.name == this.selectedChar
-            )[0];
-            if(this.currentCharacter) {
-              this.addCharacterToScene(this.currentCharacter, null);
-              this.animate();
-            }
+        // init avatar assets only once
+        this.mixers = this.avatarController.mixers;
+        this.characterAnims = this.avatarController.animations;
+        this.characterObjs = this.avatarController.chars;
+        if (this.characterObjs && this.selectedChar) {
+          const currentCharacter = this.characterObjs.get(0).get(this.selectedChar);
+          if (currentCharacter) {
+            this.addCharacterToScene(currentCharacter, null, 0);
+            this.animate();
           }
         }
       }
     }));
 
-    this.subscriptions.add(this.webSocketService.userMatched.subscribe(status => {
-      console.log(status);
-      if(status) { // another user is connected
-        //TODO add another user character and a stateHandler for it
+    this.subscriptions.add(this.webSocketService.userMatched.subscribe(anotherChar => {
+      if (anotherChar) { // another user is connected
+        if (this.characterObjs) {
+          this.anotherChar = anotherChar;
+          this.characterObjs.get(0).get(this.selectedChar).position.set(0,0,0);
+          this.characterObjs.get(0).get(this.selectedChar).rotation.set(0,0,0);
+          this.characterObjs.get(0).get(this.selectedChar).updateMatrix();
+
+          const aChar = this.characterObjs.get(1).get(this.anotherChar);
+          aChar.position.set(0,0,0);
+          aChar.rotation.set(0,0,0);
+          aChar.updateMatrix();
+          this.addCharacterToScene(aChar, null, 1);
+        }
       } else { // another user is dced
-        //TODO remove another user and another stateHandler for it
+        if (this.anotherChar) {
+          const aChar = this.characterObjs.get(1).get(this.anotherChar);
+          this.characterObjs.get(0).get(this.selectedChar).position.set(0,0,0);
+          this.characterObjs.get(0).get(this.selectedChar).rotation.set(0,0,0);
+          this.characterObjs.get(0).get(this.selectedChar).updateMatrix();
+          this.addCharacterToScene(null, aChar, 1);
+          this.anotherChar = null;
+        }
+      }
+    }));
+
+    this.subscriptions.add(this.webSocketService.moveMessageListener.subscribe(move => {
+      if(move && move.username != this.userService.userName) {
+        this.stateHandlers.get(1)?.handleKeyInput(move.keyInput, move.username);
       }
     }));
   }
 
-  addCharacterToScene(character: any, prevChar: any) {
-    if(this.currentCharacter) {
-      if (prevChar) {
-        this.scene.remove(prevChar);
-      }
-      this.currentCharacter = character;
-      this.currentCharacter.position.set(0,0,0);
-      this.currentCharacter.receiveShadow = true;
-      this.scene.add(this.currentCharacter);
-      this.characterAnims = this.avatarController.animations;
-      this.characterAnims.get(this.currentCharacter.name).forEach((action: any) => {
-        action.enabled = false;
-      });
-      if (this.characterAnims) {
-        this.mixers = this.avatarController.mixers;
-        // this.characterAnims.get(this.currentCharacter.name).get('idle').play();
-        this.stateHandler = new StateHandler(this.mixers.get(this.currentCharacter.name),
-          this.characterAnims.get(this.currentCharacter.name),
-          this.currentCharacter);
+  addCharacterToScene(character: any, prevChar: any, number: any) {
+    if (prevChar) {
+      this.scene.remove(prevChar);
+    }
+    if (character) {
+      character.position.set(0, 0, 0);
+      character.receiveShadow = true;
+      this.scene.add(character);
+      if (this.characterAnims.get(number)) {
+        this.characterAnims.get(number).get(character.name).forEach((action: any) => {
+          action.enabled = false;
+        });
+        this.stateHandlers.set(number,
+          new StateHandler(this.mixers.get(number).get(character.name),
+            this.characterAnims.get(number).get(character.name),
+            character,
+            this.webSocketService,
+            this.userService));
         this.avatarController.controllerInputInit(document);
       }
     }
@@ -170,17 +186,23 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
       return;
     } else {
       this.animationFrameId = window.requestAnimationFrame(() => this.animate());
-      if (this.mixers && this.clock && this.selectedChar) {
+      if (this.clock) {
         let mixerUpdateDelta = this.clock.getDelta();
-        this.mixers.get(this.selectedChar).update(mixerUpdateDelta);
+        if (this.mixers.get(0) && this.selectedChar) {
+          this.mixers.get(0).get(this.selectedChar).update(mixerUpdateDelta);
+        }
+        if (this.mixers.get(1) && this.anotherChar) {
+          this.mixers.get(1).get(this.anotherChar).update(mixerUpdateDelta);
+        }
       }
+      this.updateMessagePositions();
       const keyInput = this.avatarController.avatarControllerInput.keys;
-      this.stateHandler?.handleKeyInput(keyInput);
+      this.stateHandlers.get(0)?.handleKeyInput(keyInput, this.userService.userName);
       this.renderer.render(this.scene, this.camera);
     }
   }
 
-  showMessage(message: string) {
+  showMessage(message: string, username: string) {
     if (this.font && this.scene) {
       const textGeometry = new THREE.TextGeometry(message, {
         font: this.font,
@@ -195,20 +217,44 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
       });
       const textMaterial = new THREE.MeshBasicMaterial();
       const mesh = new THREE.Mesh(textGeometry, textMaterial);
-      mesh.name = `message-${this.messages.length}`
+      if(this.userService.userName == username) {
+        mesh.position.x = this.characterObjs.get(0).get(this.selectedChar).position.x;
+        mesh.position.y = this.characterObjs.get(0).get(this.selectedChar).position.y + 200;
+        mesh.position.z = this.characterObjs.get(0).get(this.selectedChar).position.z;
+        mesh.name = `message-${this.messages.length}-0`
+      } else {
+        mesh.position.x = this.characterObjs.get(1).get(this.anotherChar).position.x;
+        mesh.position.y = this.characterObjs.get(1).get(this.anotherChar).position.y + 200;
+        mesh.position.z = this.characterObjs.get(1).get(this.anotherChar).position.z;
+        mesh.name = `message-${this.messages.length}-1`
+      }
       this.messages.push(mesh.name);
       this.scene.add(mesh);
       this.clearMessage();
     }
   }
 
+  updateMessagePositions() {
+    if(this.messages) {
+      this.messages.forEach(meshName => {
+        const number = meshName.split('-')[2];
+        if(+number == 0) {
+          this.scene.getObjectByName(meshName).position.x = this.characterObjs.get(0).get(this.selectedChar).position.x;
+          this.scene.getObjectByName(meshName).position.y += 1;
+          this.scene.getObjectByName(meshName).position.z = this.characterObjs.get(0).get(this.selectedChar).position.z;
+        } else {
+          this.scene.getObjectByName(meshName).position.x = this.characterObjs.get(1).get(this.anotherChar).position.x;
+          this.scene.getObjectByName(meshName).position.y += 1;
+          this.scene.getObjectByName(meshName).position.z = this.characterObjs.get(1).get(this.anotherChar).position.z;
+        }
+      });
+    }
+  }
+
   clearMessage() {
     this.interval = setTimeout(() => {
-      console.log("interval called!");
-      console.log(this.messages);
       if (this.messages.length > 0) {
         var object = this.scene.getObjectByName(this.messages[0])
-        console.log(object);
         if (object) {
           object.material.dispose();
           object.geometry.dispose();
@@ -216,7 +262,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
           this.scene.remove(object);
         }
       }
-    }, 5000);
+    }, 3000);
   }
 
   @HostListener('window:resize', ['$event'])
