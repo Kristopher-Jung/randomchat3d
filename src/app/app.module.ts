@@ -36,6 +36,7 @@ import {HttpInterceptor} from "./shared/interceptors/http-interceptor";
 import {ToastModule} from "primeng/toast";
 import { LoadingComponent } from './shared/components/loading/loading.component';
 import {AvatarController} from "./shared/avatars/AvatarController";
+import { TextComponent } from './chat/text/text.component';
 
 @NgModule({
   declarations: [
@@ -51,7 +52,8 @@ import {AvatarController} from "./shared/avatars/AvatarController";
     ProfileComponent,
     PageNotAuthorizedComponent,
     SignupComponent,
-    LoadingComponent
+    LoadingComponent,
+    TextComponent
   ],
   imports: [
     BrowserModule,

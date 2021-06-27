@@ -1,1 +1,9 @@
-<div #rendererContainer></div>
+<div class ="flex relative flex-col h-screen overflow-y-hidden justify-content">
+  <div #rendererContainer></div>
+  <div *ngIf="showTextMessagesPanel" #scrollMe [scrollTop]="scrollMe.scrollHeight"
+       class="absolute self-center w-1/2 h-40 z-30 bg-transparent bottom-40 overflow-auto hide-bar focus:bg-blue-500">
+    <div *ngFor="let msg of messages">
+      [{{msg.time}}]{{msg.username}}: {{msg.textMessage}}
+    </div>
+  </div>
+</div>

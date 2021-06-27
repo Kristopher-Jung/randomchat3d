@@ -32,16 +32,17 @@
               class="absolute inset-0 flex z-10"></app-canvas>
 </div>
 
-<div *ngIf="showTextBox" class="flex absolute insert-x-0 bottom-20 z-30 w-full justify-center">
+<div *ngIf="showTextBox" class="flex absolute insert-x-0 bottom-20 z-30 w-full justify-center w-full">
   <input type="text"
          pInputText
          style="width:50vw;
-                background: transparent;
-                color: white;
+                background: white;
+                color: black;
                 margin-left: 2em"
+         (keyup)="submitKeyUpInput($event)"
          [(ngModel)]="textChatInput"/>
-  <p-button styleClass="rounded-full ml-5"
+  <p-button styleClass=" ml-5"
             (onClick)="onTextInputSubmit()">
-    Submit
+    Enter
   </p-button>
 </div>

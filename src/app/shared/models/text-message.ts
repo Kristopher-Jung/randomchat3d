@@ -1,7 +1,10 @@
+import {Timestamp} from "rxjs";
+
 export interface TextMessage {
   textMessage: string,
   username: string,
-  roomId: string
+  roomId: string,
+  time:Date;
 }
 
 export class TextMessage {

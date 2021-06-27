@@ -27,7 +27,6 @@ const router = function (socket, io, clientUsername) {
   io.emit(SERVER, formatMessage(null, null, connectCount, ControllerEnum.SOCKET_STAT));
 
   socket.on('joinRoom', ({roomId, character}) => {
-    console.log(character);
     socket.join(roomId);
     // Broadcast when a user connects to the room
     const numberConnections = io.sockets.adapter.rooms.get(roomId).size;
@@ -43,7 +42,7 @@ const router = function (socket, io, clientUsername) {
     socket.broadcast
       .to(roomId)
       .emit(SERVER, formatMessage(clientUsername,
-        roomId, `${clientUsername} has joined the chat room: ${roomId}`, ControllerEnum.DISPLAY));
+        roomId, `${clientUsername} has joined the chat room: ${JSON.stringify(roomId)}`, ControllerEnum.DISPLAY));
 
     socket.broadcast
       .to(roomId)
@@ -84,7 +83,8 @@ const router = function (socket, io, clientUsername) {
 
   // Listen for textChatMessage
   socket.on('textChat', ({textMessage, username, roomId}) => {
-    io.to(roomId).emit('textChat', {textMessage, username, roomId});
+    const time = new Date().getTime();
+    io.to(roomId).emit('textChat', {textMessage, username, roomId, time});
   })
 
   socket.on('move', ({keyInput, username, roomId}) => {

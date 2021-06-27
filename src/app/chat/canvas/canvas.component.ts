@@ -41,9 +41,6 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   public GLTFLoader = new GLTFLoader();
   //variables
   private subscriptions = new Subscription();
-  public font: any = null;
-  public messages: string[] = [];
-  private interval: any;
   private clock: any = new THREE.Clock();
   //Avatar controls
   private characterObjs: any;
@@ -54,6 +51,12 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   // animation frame
   private animationFrameId: any;
   private pause: boolean = false;
+  //chats
+  public font: any = null;
+  public emoticons: string[] = [];
+  public messages: TextMessage[] = [];
+  private interval: any;
+  public showTextMessagesPanel: boolean = false;
 
   constructor(private userService: UserService,
               private webSocketService: WebsocketService,
@@ -86,7 +89,9 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
     this.subscriptions.add(this.webSocketService.textMessageListener.subscribe((msg: TextMessage) => {
       if (msg) {
         // console.log(msg);
-        this.showMessage(msg.textMessage, msg.username);
+        //TODO
+        // this.showEmoticons(msg.textMessage, msg.username);
+        this.messages.push(msg);
       }
     }));
   }
@@ -118,7 +123,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
         // const controls = new OrbitControls(this.camera, this.renderer.domElement);
         // controls.minZoom = 0.5;
         // controls.maxZoom = 2;
-        const light = new THREE.AmbientLight(new THREE.Color('white'), 0.8);
+        const light = new THREE.AmbientLight(new THREE.Color('white'), 1);
         light.castShadow = true;
         this.scene.add(light);
         const axesHelper = new THREE.AxesHelper(500);
@@ -143,6 +148,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
 
     this.subscriptions.add(this.webSocketService.userMatched.subscribe(anotherChar => {
       // console.log(anotherChar);
+      this.showTextMessagesPanel = anotherChar != null;
       if (anotherChar) { // another user is connected
         if (this.characterObjs) {
           this.anotherChar = anotherChar;
@@ -164,6 +170,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
           this.characterObjs.get(0).get(this.selectedChar).updateMatrix();
           this.addCharacterToScene(null, aChar, 1);
           this.anotherChar = null;
+          this.messages = [];
         }
       }
     }));
@@ -224,7 +231,8 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
     }
   }
 
-  showMessage(message: string, username: string) {
+  //TODO changes to emoticons based on text message user put
+  showEmoticons(message: string, username: string) {
     if (this.font && this.scene) {
       const textGeometry = new THREE.TextGeometry(message, {
         font: this.font,
@@ -243,22 +251,22 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
         mesh.position.x = this.characterObjs.get(0).get(this.selectedChar).position.x;
         mesh.position.y = this.characterObjs.get(0).get(this.selectedChar).position.y + 200;
         mesh.position.z = this.characterObjs.get(0).get(this.selectedChar).position.z;
-        mesh.name = `message-${this.messages.length}-0`
+        mesh.name = `message-${this.emoticons.length}-0`
       } else {
         mesh.position.x = this.characterObjs.get(1).get(this.anotherChar).position.x;
         mesh.position.y = this.characterObjs.get(1).get(this.anotherChar).position.y + 200;
         mesh.position.z = this.characterObjs.get(1).get(this.anotherChar).position.z;
-        mesh.name = `message-${this.messages.length}-1`
+        mesh.name = `message-${this.emoticons.length}-1`
       }
-      this.messages.push(mesh.name);
+      this.emoticons.push(mesh.name);
       this.scene.add(mesh);
-      this.clearMessage();
+      this.clearEmoticon();
     }
   }
 
   updateMessagePositions() {
-    if(this.messages) {
-      this.messages.forEach(meshName => {
+    if(this.emoticons) {
+      this.emoticons.forEach(meshName => {
         const number = meshName.split('-')[2];
         const msg = this.scene.getObjectByName(meshName);
         if(+number == 0) {
@@ -276,14 +284,14 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
     }
   }
 
-  clearMessage() {
+  clearEmoticon() {
     this.interval = setTimeout(() => {
-      if (this.messages.length > 0) {
-        var object = this.scene.getObjectByName(this.messages[0])
+      if (this.emoticons.length > 0) {
+        var object = this.scene.getObjectByName(this.emoticons[0])
         if (object) {
           object.material.dispose();
           object.geometry.dispose();
-          this.messages.shift();
+          this.emoticons.shift();
           this.scene.remove(object);
         }
       }

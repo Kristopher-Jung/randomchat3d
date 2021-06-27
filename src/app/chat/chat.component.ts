@@ -229,4 +229,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     else console.log("roomId/username is missing");
   }
 
+  submitKeyUpInput(event: any) {
+    if(event.keyCode === 13) { // enter
+      event.preventDefault();
+      this.onTextInputSubmit();
+    }
+  }
+
 }
