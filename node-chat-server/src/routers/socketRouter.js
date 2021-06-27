@@ -74,6 +74,12 @@ const router = function (socket, io, clientUsername) {
       .to(roomId)
       .emit(SERVER, formatMessage(clientUsername,
         roomId, numberConnections, ControllerEnum.AWAIT));
+
+    http.get(`${APP_URL}:${MONGO_PORT}/user/leaveRoom/${clientUsername}`, resp => {
+      console.log(`${clientUsername} leave room, Mongo roomId = null`);
+    }).on("error", err => {
+      console.log("Error: " + err.message);
+    });
   });
 
   // Listen for textChatMessage
@@ -82,7 +88,6 @@ const router = function (socket, io, clientUsername) {
   })
 
   socket.on('move', ({keyInput, username, roomId}) => {
-    console.log("signal Move!");
     socket.broadcast
       .to(roomId)
       .emit('move', {keyInput, username, roomId});
@@ -91,7 +96,7 @@ const router = function (socket, io, clientUsername) {
   // Runs when client disconnects completely (signOut) or close browser/ dced unexpectedly
   socket.on('disconnect', () => {
     console.log(`socket disconnection with username: ${clientUsername}, socketId: ${socket.id}`);
-    http.get(`${APP_URL}:${MONGO_PORT}/user/leaveChat/${clientUsername}`, resp => {
+    http.get(`${APP_URL}:${MONGO_PORT}/user/signOut/${clientUsername}`, resp => {
       console.log(`${clientUsername} leave room, Mongo roomId = null`);
     }).on("error", err => {
       console.log("Error: " + err.message);

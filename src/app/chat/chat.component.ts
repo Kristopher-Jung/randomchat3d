@@ -211,7 +211,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   cancelSearch() {
-
+    this.webSocketService.leaveRoom(this.userService.roomId);
+    this.userService.roomId = null;
+    this.disableSearch = false;
+    this.userSearchingBegin = false;
   }
 
   onTextInputSubmit() {

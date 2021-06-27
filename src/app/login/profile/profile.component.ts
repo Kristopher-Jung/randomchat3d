@@ -37,7 +37,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   logout(): void {
     if(this.userService.roomId) {
       //console.log("logout!" + this.userService.roomId);
-      this.userService.leaveChat(this.username).subscribe((res)=> {
+      this.userService.signOut(this.username).subscribe((res)=> {
         //console.log(res);
         if(!res.roomId) {
           this.websocketService.leaveRoom(this.userService.roomId);

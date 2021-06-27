@@ -13,8 +13,10 @@ const router = function(app) {
   app.post('/user/auth/:username', userController.authUser);
   //create chat room
   app.get('/user/createChat/:username/:roomId', userController.createChat);
-  //leave chat room
-  app.get('/user/leaveChat/:username', userController.leaveChat);
+  //sign out
+  app.get('/user/signOut/:username', userController.signOut);
+  //leave Room
+  app.get('/user/leaveRoom/:username', userController.leaveRoom);
   //join chat room
   app.get('/user/joinChat/:username', userController.joinChat)
   //Update char

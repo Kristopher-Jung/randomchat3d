@@ -155,7 +155,7 @@ exports.createChat = (req, res) => {
     });
 };
 
-exports.leaveChat = (req, res) => {
+exports.signOut = (req, res) => {
   const username = req.params.username;
   UserModel.findOneAndUpdate({username: username}, {roomId: null, activeInd: false}, {new: true},
     (err, doc) => {
@@ -174,6 +174,27 @@ exports.leaveChat = (req, res) => {
       }
     });
 };
+
+exports.leaveRoom = (req, res) => {
+  const username = req.params.username;
+  UserModel.findOneAndUpdate({username: username}, {roomId: null}, {new: true},
+    (err, doc) => {
+      if (err) {
+        return res.status(500).send({
+          message: `couldn't leave a chat room, username:${username}`
+        });
+      } else {
+        if(doc) {
+          return res.send(doc);
+        } else {
+          return res.send({
+            message: `User not found, username:${username}`
+          });
+        }
+      }
+    });
+};
+
 
 exports.joinChat = (req, res) => {
   UserModel.aggregate([

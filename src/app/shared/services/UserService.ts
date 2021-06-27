@@ -72,8 +72,8 @@ export class UserService {
     this.webSocketService.disconnectService();
   }
 
-  leaveChat(username:string | null): Observable<any> {
-    const full_String = `${this.connectionUrl}/user/leaveChat/${username}`;
+  signOut(username:string | null): Observable<any> {
+    const full_String = `${this.connectionUrl}/user/signOut/${username}`;
     const headers = new HttpHeaders();
     const requestOptions = {
       headers: headers
