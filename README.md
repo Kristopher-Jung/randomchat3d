@@ -1,27 +1,46 @@
-# RandomChat4d
+# Description
+RandChat4 is a random chat application that enables user to interact with each-other through their chosen avatar using keyboard inputs.
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.0.3.
+# Demo
+![randomChat4d Demo](demo/RandChat4Demo.gif)
+<!-- ![RandChat4Demo.gif](https://giphy.com/embed/zMNncyCgoWWXuwKvLO) -->
 
-## Development server
+# Current functionalities
+1. SignIn/SignOut
+2. Random matching. 1 on 1 communication room.
+3. Avatars and animations to interact with.
+4. Move Avatars in a room, synchronized with each other's screen.
+5. Text chat communication in a room, synchronized with eath other's screen.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+# Assets
+1. Free .fbx from Mixamo.com
+  - Claire
+  - Kaya
+2. Free .glb from Sketchfab.com
+  - totoro
+3. classroom model.gltf
+  license: Public / Remixable (CC-BY)
+  created by Jonathan Granskog
+4. animations from Mixamo.com
+  - idle.fbx
+  - walk.fbx
 
-## Code scaffolding
+# Main Techs used
+- Front-end
+1. Angular
+2. Primeng
+3. Tailwind.css
+4. Socket.io
+5. Three.js
+- Back-end
+1. Bcrypt
+2. Express.js
+3. Mongoose
+4. Socket.io
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+# In Development
+1. AI Chatbot that does control avatar and respond to user's chat.
+2. 3D Emoticons.
+3. Mini-games for two players.
+4. More and better 3d assets.
+5. Voice chat.
