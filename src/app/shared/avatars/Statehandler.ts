@@ -11,6 +11,7 @@ export class StateHandler {
   private actions: any[];
   private currentAction: any;
   private signal = false;
+  private charBoundingBox: any;
 
   constructor(public mixer: any,
               public animations: any,
@@ -19,6 +20,7 @@ export class StateHandler {
               private userService: UserService) {
     this.mixer = mixer;
     this.character = character;
+    this.charBoundingBox = new THREE.Box3().setFromObject(this.character);
     this.idleAction = animations.get('idle');
     this.walkAction = animations.get('walk');
     this.actions = [this.idleAction, this.walkAction]
@@ -85,13 +87,30 @@ export class StateHandler {
     action.setEffectiveWeight(weight);
   }
 
-  handleKeyInput(keyInput: any, username: any) {
+  handleKeyInput(keyInput: any, username: any, sceneBoundingBox: any) {
     if(username === this.userService.userName && this.userService.roomId && this.signal) {
       this.socketService.signalMove(keyInput, username, this.userService.roomId);
     }
     if(keyInput.forward) {
-      this.prepareCrossFade(this.currentAction, this.walkAction);
-      this.character.translateZ(2);
+      const charPos = this.character.position;
+      if(sceneBoundingBox.min.z < charPos.z - 20) {
+        this.prepareCrossFade(this.currentAction, this.walkAction);
+        this.character.translateZ(3);
+      } else {
+        this.character.position.z+=5;
+      }
+      if(charPos.z + 20 < sceneBoundingBox.max.z) {
+        this.prepareCrossFade(this.currentAction, this.walkAction);
+        this.character.translateZ(3);
+      } else {
+        this.character.position.z-=5;
+      }
+      if(!(sceneBoundingBox.min.x < charPos.x - 50)) {
+        this.character.position.x+=10;
+      }
+      if(!(charPos.x + 50 < sceneBoundingBox.max.x)) {
+        this.character.position.x-=10;
+      }
     } else {
       this.prepareCrossFade(this.currentAction, this.idleAction);
     }

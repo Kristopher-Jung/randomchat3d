@@ -17,6 +17,8 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 import {AvatarController} from "../../shared/avatars/AvatarController";
 import {UserService} from "../../shared/services/UserService";
 import {StateHandler} from "../../shared/avatars/Statehandler";
+import {DRACOLoader} from "three/examples/jsm/loaders/DRACOLoader";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 
 @Component({
   selector: 'app-canvas',
@@ -35,7 +37,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   public camera: any = null;
   public mesh: any = null;
   // loaders
-  public loader = new THREE.FontLoader();
+  public fontLoader = new THREE.FontLoader();
   public GLTFLoader = new GLTFLoader();
   //variables
   private subscriptions = new Subscription();
@@ -43,10 +45,12 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   public messages: string[] = [];
   private interval: any;
   private clock: any = new THREE.Clock();
+  //Avatar controls
   private characterObjs: any;
   private characterAnims: any;
   private mixers: any;
   private stateHandlers = new Map<number, StateHandler>();
+  private sceneBoundingBox: any;
   // animation frame
   private animationFrameId: any;
   private pause: boolean = false;
@@ -54,11 +58,25 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   constructor(private userService: UserService,
               private webSocketService: WebsocketService,
               private avatarController: AvatarController) {
-    this.loader.load('assets/static/font/helvetiker_regular.typeface.json', font => {
+    this.fontLoader.load('assets/static/font/helvetiker_regular.typeface.json', font => {
       this.font = font;
     });
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color('black');
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath( '/examples/js/libs/draco/' );
+    this.GLTFLoader.setDRACOLoader( dracoLoader );
+    this.GLTFLoader.load('assets/static/objects/classroom/model.gltf', (gltf) => {
+      console.log(gltf);
+      gltf.scene.scale.setScalar(150);
+      gltf.scene.position.y-=10;
+      gltf.scene.receiveShadow = true;
+      this.sceneBoundingBox = new THREE.Box3().setFromObject(gltf.scene);
+      const box = new THREE.BoxHelper(gltf.scene, 0xffff00);
+      this.scene.add(box);
+      console.log(this.sceneBoundingBox);
+      this.scene.add(gltf.scene);
+    });
+    this.scene.background = new THREE.Color('grey');
   }
 
   ngOnInit() {
@@ -97,20 +115,18 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
     this.subscriptions.add(this.avatarController.assetLoadCompleted.subscribe(status => {
       if (status) {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
-        const light = new THREE.AmbientLight(new THREE.Color('white'), 1);
-        // ground
-        const ground = new THREE.Mesh(
-          new THREE.PlaneGeometry(1000, 1000),
-          new THREE.MeshPhongMaterial({color: 0x999999, depthWrite: false})
-        );
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        this.scene.add(ground);
+        // const controls = new OrbitControls(this.camera, this.renderer.domElement);
+        // controls.minZoom = 0.5;
+        // controls.maxZoom = 2;
+        const light = new THREE.AmbientLight(new THREE.Color('white'), 0.8);
+        light.castShadow = true;
         this.scene.add(light);
-        const axesHelper = new THREE.AxesHelper(200);
+        const axesHelper = new THREE.AxesHelper(500);
+        axesHelper.position.y = 200
         this.scene.add(axesHelper);
-        this.camera.position.z = 500;
-        this.camera.position.y = 100;
+        this.camera.position.x = -600;
+        this.camera.position.y = 450;
+        this.camera.position.z = 250;
         // init avatar assets only once
         this.mixers = this.avatarController.mixers;
         this.characterAnims = this.avatarController.animations;
@@ -147,14 +163,14 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
           this.characterObjs.get(0).get(this.selectedChar).rotation.set(0,0,0);
           this.characterObjs.get(0).get(this.selectedChar).updateMatrix();
           this.addCharacterToScene(null, aChar, 1);
-          // this.anotherChar = null;
+          this.anotherChar = null;
         }
       }
     }));
 
     this.subscriptions.add(this.webSocketService.moveMessageListener.subscribe(move => {
       if(move && move.username != this.userService.userName) {
-        this.stateHandlers.get(1)?.handleKeyInput(move.keyInput, move.username);
+        this.stateHandlers.get(1)?.handleKeyInput(move.keyInput, move.username, this.sceneBoundingBox);
       }
     }));
   }
@@ -165,6 +181,10 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
     }
     if (character) {
       character.position.set(0, 0, 0);
+      if(character.name == 'Claire') {
+        character.position.y += 15;
+      }
+      character.scale.setScalar(1.5);
       character.receiveShadow = true;
       this.scene.add(character);
       if (this.characterAnims.get(number)) {
@@ -195,10 +215,11 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
         if (this.mixers.get(1) && this.anotherChar) {
           this.mixers.get(1).get(this.anotherChar).update(mixerUpdateDelta);
         }
+        this.camera.lookAt(this.characterObjs.get(0).get(this.selectedChar).position);
       }
       this.updateMessagePositions();
       const keyInput = this.avatarController.avatarControllerInput.keys;
-      this.stateHandlers.get(0)?.handleKeyInput(keyInput, this.userService.userName);
+      this.stateHandlers.get(0)?.handleKeyInput(keyInput, this.userService.userName, this.sceneBoundingBox);
       this.renderer.render(this.scene, this.camera);
     }
   }
@@ -207,7 +228,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
     if (this.font && this.scene) {
       const textGeometry = new THREE.TextGeometry(message, {
         font: this.font,
-        size: 80,
+        size: 40,
         height: 5,
         curveSegments: 12,
         bevelEnabled: true,
@@ -239,14 +260,17 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
     if(this.messages) {
       this.messages.forEach(meshName => {
         const number = meshName.split('-')[2];
+        const msg = this.scene.getObjectByName(meshName);
         if(+number == 0) {
-          this.scene.getObjectByName(meshName).position.x = this.characterObjs.get(0).get(this.selectedChar).position.x;
-          this.scene.getObjectByName(meshName).position.y += 1;
-          this.scene.getObjectByName(meshName).position.z = this.characterObjs.get(0).get(this.selectedChar).position.z;
+          msg.position.x = this.characterObjs.get(0).get(this.selectedChar).position.x;
+          msg.position.y += 1;
+          msg.position.z = this.characterObjs.get(0).get(this.selectedChar).position.z;
+          msg.lookAt(this.camera.position);
         } else {
-          this.scene.getObjectByName(meshName).position.x = this.characterObjs.get(1).get(this.anotherChar).position.x;
-          this.scene.getObjectByName(meshName).position.y += 1;
-          this.scene.getObjectByName(meshName).position.z = this.characterObjs.get(1).get(this.anotherChar).position.z;
+          msg.position.x = this.characterObjs.get(1).get(this.anotherChar).position.x;
+          msg.position.y += 1;
+          msg.position.z = this.characterObjs.get(1).get(this.anotherChar).position.z;
+          msg.lookAt(this.camera.position);
         }
       });
     }
