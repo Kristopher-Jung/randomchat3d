@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from "@angular/router";
-import {Subscription} from "rxjs";
+import {BehaviorSubject, Subscription} from "rxjs";
 import {MenuItem, MessageService} from "primeng/api";
 import {WebsocketService} from "../shared/services/WebsocketService";
 import {ServerMessage} from "../shared/models/server-message";
@@ -52,6 +52,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   public isAssetsLoadCompleted: boolean = true;
   public alreadyCompleted: boolean = false;
   public userSearchingBegin: boolean = false;
+  public clientLeaveRoom = new BehaviorSubject(false);
 
   constructor(private route: ActivatedRoute,
               private webSocketService: WebsocketService,
@@ -212,9 +213,12 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   cancelSearch() {
     this.webSocketService.leaveRoom(this.userService.roomId);
+    this.webSocketService.userMatched.next(null);
     this.userService.roomId = null;
     this.disableSearch = false;
     this.userSearchingBegin = false;
+    this.showTextBox = false;
+    this.alreadyCompleted = false;
   }
 
   onTextInputSubmit() {

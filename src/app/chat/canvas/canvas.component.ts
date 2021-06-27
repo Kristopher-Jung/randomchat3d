@@ -126,6 +126,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
     }));
 
     this.subscriptions.add(this.webSocketService.userMatched.subscribe(anotherChar => {
+      // console.log(anotherChar);
       if (anotherChar) { // another user is connected
         if (this.characterObjs) {
           this.anotherChar = anotherChar;
@@ -146,7 +147,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
           this.characterObjs.get(0).get(this.selectedChar).rotation.set(0,0,0);
           this.characterObjs.get(0).get(this.selectedChar).updateMatrix();
           this.addCharacterToScene(null, aChar, 1);
-          this.anotherChar = null;
+          // this.anotherChar = null;
         }
       }
     }));
