@@ -69,14 +69,14 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
     dracoLoader.setDecoderPath( '/examples/js/libs/draco/' );
     this.GLTFLoader.setDRACOLoader( dracoLoader );
     this.GLTFLoader.load('assets/static/objects/classroom/model.gltf', (gltf) => {
-      console.log(gltf);
+      //console.log(gltf);
       gltf.scene.scale.setScalar(150);
       gltf.scene.position.y-=10;
       gltf.scene.receiveShadow = true;
       this.sceneBoundingBox = new THREE.Box3().setFromObject(gltf.scene);
       const box = new THREE.BoxHelper(gltf.scene, 0xffff00);
       this.scene.add(box);
-      console.log(this.sceneBoundingBox);
+      //console.log(this.sceneBoundingBox);
       this.scene.add(gltf.scene);
     });
     this.scene.background = new THREE.Color('grey');

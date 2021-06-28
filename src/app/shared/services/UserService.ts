@@ -21,13 +21,13 @@ export class UserService {
   constructor(private webSocketService: WebsocketService, private http: HttpClient, private messageService: MessageService) {
     this.userName = null;
     this.roomId = null;
+    this.connectionUrl = environment.server_url;
     if(isDevMode()) {
       console.log("Angular is currently running in Dev Mode");
     } else {
       console.log("Angular is currently running in Prod Mode");
     }
-    this.connectionUrl = environment.server_url;
-    //console.log(this.connectionUrl);
+    console.log(`Angular will use server url: ${this.connectionUrl}`);
   }
 
   cleanUp() {

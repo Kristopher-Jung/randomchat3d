@@ -3,12 +3,12 @@ const http = require('http');
 require('dotenv').config();
 const node_env = process.env.NODE_ENV || 'development';
 let APP_URL = null;
+const PORT = process.env.PORT || 3000;
 if (node_env === 'development') {
-  APP_URL = process.env.LOCAL_URL;
+  APP_URL = `${process.env.LOCAL_URL}:${PORT}`;
 } else {
   APP_URL = process.env.PRODUCTION_URL;
 }
-const PORT = process.env.PORT;
 console.log(`Socket Router connected to env: ${node_env} using AppUrl: ${APP_URL} PORT: ${PORT}`);
 
 const SERVER = 'ServerMessage';
@@ -74,7 +74,7 @@ const router = function (socket, io, clientUsername) {
       .emit(SERVER, formatMessage(clientUsername,
         roomId, numberConnections, ControllerEnum.AWAIT));
 
-    http.get(`${APP_URL}:${PORT}/user/leaveRoom/${clientUsername}`, resp => {
+    http.get(`${APP_URL}/user/leaveRoom/${clientUsername}`, resp => {
       console.log(`${clientUsername} leave room, Mongo roomId = null`);
     }).on("error", err => {
       console.log("Error: " + err.message);
@@ -96,7 +96,7 @@ const router = function (socket, io, clientUsername) {
   // Runs when client disconnects completely (signOut) or close browser/ dced unexpectedly
   socket.on('disconnect', () => {
     console.log(`socket disconnection with username: ${clientUsername}, socketId: ${socket.id}`);
-    http.get(`${APP_URL}:${PORT}/user/signOut/${clientUsername}`, resp => {
+    http.get(`${APP_URL}/user/signOut/${clientUsername}`, resp => {
       console.log(`${clientUsername} leave room, Mongo roomId = null`);
     }).on("error", err => {
       console.log("Error: " + err.message);
