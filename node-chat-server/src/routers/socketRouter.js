@@ -1,5 +1,6 @@
 const {formatMessage, ControllerEnum} = require('../models/messages');
 const http = require('http');
+const https = require('https');
 require('dotenv').config();
 const node_env = process.env.NODE_ENV || 'development';
 let APP_URL = null;
@@ -73,12 +74,19 @@ const router = function (socket, io, clientUsername) {
       .to(roomId)
       .emit(SERVER, formatMessage(clientUsername,
         roomId, numberConnections, ControllerEnum.AWAIT));
-
-    http.get(`${APP_URL}/user/leaveRoom/${clientUsername}`, resp => {
-      console.log(`${clientUsername} leave room, Mongo roomId = null`);
-    }).on("error", err => {
-      console.log("Error: " + err.message);
-    });
+    if (node_env === 'development') {
+      http.get(`${APP_URL}/user/leaveRoom/${clientUsername}`, resp => {
+        console.log(`${clientUsername} leave room, Mongo roomId = null`);
+      }).on("error", err => {
+        console.log("Error: " + err.message);
+      });
+    } else {
+      https.get(`${APP_URL}/user/leaveRoom/${clientUsername}`, resp => {
+        console.log(`${clientUsername} leave room, Mongo roomId = null`);
+      }).on("error", err => {
+        console.log("Error: " + err.message);
+      });
+    }
   });
 
   // Listen for textChatMessage
@@ -96,11 +104,19 @@ const router = function (socket, io, clientUsername) {
   // Runs when client disconnects completely (signOut) or close browser/ dced unexpectedly
   socket.on('disconnect', () => {
     console.log(`socket disconnection with username: ${clientUsername}, socketId: ${socket.id}`);
-    http.get(`${APP_URL}/user/signOut/${clientUsername}`, resp => {
-      console.log(`${clientUsername} leave room, Mongo roomId = null`);
-    }).on("error", err => {
-      console.log("Error: " + err.message);
-    });
+    if (node_env === 'development') {
+      http.get(`${APP_URL}/user/signOut/${clientUsername}`, resp => {
+        console.log(`${clientUsername} leave room, Mongo roomId = null`);
+      }).on("error", err => {
+        console.log("Error: " + err.message);
+      });
+    } else {
+      https.get(`${APP_URL}/user/signOut/${clientUsername}`, resp => {
+        console.log(`${clientUsername} leave room, Mongo roomId = null`);
+      }).on("error", err => {
+        console.log("Error: " + err.message);
+      });
+    }
     connectCount-=1;
     io.emit(SERVER, formatMessage(null, null, connectCount, ControllerEnum.SOCKET_STAT));
   });
