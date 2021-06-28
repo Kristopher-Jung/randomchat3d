@@ -20,8 +20,8 @@ RandChat4 is a random chat application that enables user to interact with each-o
 1. Free .fbx from Mixamo.com
   - Claire
   - Kaya
-2. Free .glb from Sketchfab.com
-  - totoro
+2. Free .glb from CGTrader
+  - totoro 
 3. classroom model.gltf
   license: Public / Remixable (CC-BY)
   created by Jonathan Granskog
