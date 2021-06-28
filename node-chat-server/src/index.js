@@ -10,14 +10,23 @@ const mongoose = require('mongoose');
 const mongoRouter = require('./routers/mongoRouter');
 const socketRouter = require('./routers/socketRouter')
 
+const runEnv = process.env.NODE_ENV || 'dev';
+console.log(`Chat node serve runs in: ${runEnv} env`);
+let corsOrigin;
+if(runEnv === 'dev') {
+  corsOrigin = process.env.LOCAL_WEBAPP_ORIGIN;
+} else {
+  corsOrigin = process.env.PRODUCTION_WEBAPP_ORIGIN;
+}
+
 /**
  * MongoDB server
  */
 app.use(cors());
-//TODO
-// app.use(cors({
-//   origin: 'http://yourapp.com'
-// }));
+TODO
+app.use(cors({
+  origin: corsOrigin
+}));
 app.use(express.static(path.join(__dirname, 'static')));
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
@@ -30,7 +39,7 @@ mongoRouter(app);
 
 //Mongo DB Connection
 mongoose.promise = global.Promise;
-const mongoUrl = process.env.CONNECTION_STRING;
+const mongoUrl = process.env.MONGO_CONNECTION_STRING;
 console.log(mongoUrl);
 mongoose.connect(mongoUrl, {
   useCreateIndex: true,
@@ -50,7 +59,7 @@ mongoose.connect(mongoUrl, {
 const socketServer = http.createServer(express);
 const io = socketio(socketServer, {
   cors: {
-    origins: ['http://localhost:4200']
+    origins: [corsOrigin]
   }
 });
 io.on("connection", socket => {
@@ -61,7 +70,7 @@ io.on("connection", socket => {
 });
 
 // Initialize our websocket server on port 3000
-const SOCKET_PORT = process.env.PORT || 3000;
+const SOCKET_PORT = process.env.SOCKET_PORT || 3000;
 
 socketServer.listen(SOCKET_PORT, () => {
   console.log(`started chat-server on port: ${SOCKET_PORT}`);
