@@ -22,8 +22,6 @@ if(runEnv === 'dev') {
 /**
  * MongoDB server
  */
-app.use(cors());
-TODO
 app.use(cors({
   origin: corsOriginUI
 }));
