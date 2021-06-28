@@ -4,7 +4,7 @@ const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const socketio = require('socket.io');
+// const socketio = require('socket.io');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const mongoRouter = require('./routers/mongoRouter');
@@ -12,13 +12,13 @@ const socketRouter = require('./routers/socketRouter')
 
 const runEnv = process.env.NODE_ENV || 'dev';
 console.log(`Chat node serve runs in: ${runEnv} env`);
-let corsOriginUI;
-if(runEnv === 'dev') {
-  corsOriginUI = process.env.LOCAL_WEBAPP_ORIGIN;
-} else {
-  corsOriginUI = process.env.PRODUCTION_WEBAPP_ORIGIN;
-}
-console.log(`CorsOriginUI: ${corsOriginUI}`);
+// let corsOriginUI;
+// if(runEnv === 'dev') {
+//   corsOriginUI = process.env.LOCAL_WEBAPP_ORIGIN;
+// } else {
+//   corsOriginUI = process.env.PRODUCTION_WEBAPP_ORIGIN;
+// }
+// console.log(`CorsOriginUI: ${corsOriginUI}`);
 
 /**
  * MongoDB server

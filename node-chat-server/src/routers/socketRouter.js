@@ -8,9 +8,9 @@ if (node_env === 'development') {
 } else {
   APP_URL = process.env.PRODUCTION_URL;
 }
-console.log(`Socket Router connected to env: ${node_env} using AppUrl: ${APP_URL}`);
-
 const PORT = process.env.PORT;
+console.log(`Socket Router connected to env: ${node_env} using AppUrl: ${APP_URL} PORT: ${PORT}`);
+
 const SERVER = 'ServerMessage';
 let connectCount = 0;
 
