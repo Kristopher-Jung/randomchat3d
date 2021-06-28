@@ -48,3 +48,7 @@ RandChat4 is a random chat application that enables user to interact with each-o
 3. Mini-games for two players.
 4. More and better 3d assets.
 5. Voice chat.
+
+# Disclaimer
+I made this personal web-page for the sole purpose of learning and web-dev community engagement. 
+I used free-of-use assets obtained from the internet. Contact me email if you'd like to discuss about this project.
