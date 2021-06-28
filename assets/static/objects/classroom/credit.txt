@@ -1,0 +1,3 @@
+classroom gltf
+license: Public / Remixable (CC-BY)
+created by Jonathan Granskog
