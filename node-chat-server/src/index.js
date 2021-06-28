@@ -12,11 +12,11 @@ const socketRouter = require('./routers/socketRouter')
 
 const runEnv = process.env.NODE_ENV || 'dev';
 console.log(`Chat node serve runs in: ${runEnv} env`);
-let corsOrigin;
+let corsOriginUI;
 if(runEnv === 'dev') {
-  corsOrigin = process.env.LOCAL_WEBAPP_ORIGIN;
+  corsOriginUI = process.env.LOCAL_WEBAPP_ORIGIN;
 } else {
-  corsOrigin = process.env.PRODUCTION_WEBAPP_ORIGIN;
+  corsOriginUI = process.env.PRODUCTION_WEBAPP_ORIGIN;
 }
 
 /**
@@ -25,7 +25,7 @@ if(runEnv === 'dev') {
 app.use(cors());
 TODO
 app.use(cors({
-  origin: corsOrigin
+  origin: corsOriginUI
 }));
 app.use(express.static(path.join(__dirname, 'static')));
 app.use(bodyParser.urlencoded({extended:true}));
@@ -59,7 +59,7 @@ mongoose.connect(mongoUrl, {
 const socketServer = http.createServer(express);
 const io = socketio(socketServer, {
   cors: {
-    origins: [corsOrigin]
+    origins: [corsOriginUI]
   }
 });
 io.on("connection", socket => {
