@@ -6,7 +6,7 @@ RandChat4 is a random chat application that enables user to interact with each-o
 <!-- ![RandChat4Demo.gif](https://giphy.com/embed/zMNncyCgoWWXuwKvLO) -->
 
 # Current functionalities
-1. SignIn/SignOut
+1. SignIn/SignOut -- refactored to remove password requirements. Not saving password info to DB.
 2. Random matching. 1 on 1 communication room.
 3. Avatars and animations to interact with.
 4. Move Avatars in a room, synchronized with each other's screen.
