@@ -37,30 +37,30 @@ export class UserService {
     this.isUserLoggedInBool = false;
   }
 
-  signUp(username:string, password:string): Observable<any> {
+  signUp(username:string): Observable<any> {
     const full_String = `${this.connectionUrl}/user/signUp/${username}`;
     const headers = new HttpHeaders();
-    const body = {
-      password: password
-    };
+    // const body = {
+    //   password: password
+    // };
     const requestOptions = {
       headers: headers
     };
     headers.set('Access-Control-Allow-Origin', '*');
-    return this.http.post<UserModel>(full_String, body, requestOptions);
+    return this.http.get<UserModel>(full_String, requestOptions);
   }
 
-  login(username:string, password:string): Observable<any> {
+  login(username:string): Observable<any> {
     const full_String = `${this.connectionUrl}/user/auth/${username}`;
     const headers = new HttpHeaders();
-    const body = {
-      password: password
-    };
+    // const body = {
+    //   password: password
+    // };
     const requestOptions = {
       headers: headers
     };
     headers.set('Access-Control-Allow-Origin', '*');
-    return this.http.post<any>(full_String, body, requestOptions);
+    return this.http.get<any>(full_String, requestOptions);
   }
 
   logout(): void {

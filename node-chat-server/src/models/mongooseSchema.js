@@ -13,10 +13,10 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true
   },
-  password: {
-    type: String,
-    required: true
-  },
+  // password: {
+  //   type: String,
+  //   required: true
+  // },
   roomId: {
     type: String,
     required: false

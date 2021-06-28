@@ -9,9 +9,11 @@ const router = function (app) {
 
   // mongo db interaction controller
   //create an user
-  app.post('/user/signUp/:username', cors(), userController.createUser);
+  // app.post('/user/signUp/:username', cors(), userController.createUser);
+  app.get('/user/signUp/:username', cors(), userController.createUser);
   //user password auth
-  app.post('/user/auth/:username', cors(), userController.authUser);
+  // app.post('/user/auth/:username', cors(), userController.authUser);
+  app.get('/user/auth/:username', cors(), userController.authUser);
   //create chat room
   app.get('/user/createChat/:username/:roomId', cors(), userController.createChat);
   //sign out

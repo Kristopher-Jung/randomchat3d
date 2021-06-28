@@ -31,7 +31,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   login(): void {
-    this.userService.login(this.username, this.password).subscribe(res => {
+    //, this.password
+    this.userService.login(this.username).subscribe(res => {
       if(res && !res.message) {
         this.userService.userName = this.username;
         this.userService.selectedChar = res.character;

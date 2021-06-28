@@ -7,16 +7,17 @@
              autocomplete="off"
              [(ngModel)]="username"/>
     </div>
-    <div class="p-field">
-      <label for="password">Password</label>
-      <p-password id="password"
-                  [(ngModel)]="password"
-                  [toggleMask]="true">
-      </p-password>
-    </div>
+<!--    <div class="p-field">-->
+<!--      <label for="password">Password</label>-->
+<!--      <p-password id="password"-->
+<!--                  [(ngModel)]="password"-->
+<!--                  [toggleMask]="true">-->
+<!--      </p-password>-->
+<!--    </div>-->
     <p-button label="Submit"
               (onClick)="submit()"
-              [disabled]="!username || !password">
+              [disabled]="!username">
+      <!--              || !password-->
     </p-button>
   </div>
   <p-progressSpinner *ngIf="isSubmitting"></p-progressSpinner>

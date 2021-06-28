@@ -12,7 +12,7 @@ import {MessageService} from "primeng/api";
 export class SignupComponent implements OnInit, OnDestroy {
 
   public username: any = null;
-  public password: any = null;
+  // public password: any = null;
   public isSubmitting = false;
   private subscriptions = new Subscription();
 
@@ -29,7 +29,8 @@ export class SignupComponent implements OnInit, OnDestroy {
 
   submit(): void {
     this.isSubmitting = true;
-    if(!this.username || !this.password) {
+    // || !this.password
+    if(!this.username) {
       this.messageService.add({
         key:'home',
         severity:'Warn',
@@ -37,7 +38,7 @@ export class SignupComponent implements OnInit, OnDestroy {
         detail:'username or password is needed'
       });
     } else {
-      this.subscriptions.add(this.userService.signUp(this.username, this.password).subscribe(data => {
+      this.subscriptions.add(this.userService.signUp(this.username).subscribe(data => {
         if(data) {
           this.isSubmitting = false;
           this.messageService.add({
