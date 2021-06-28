@@ -8,9 +8,9 @@ if (node_env === 'development') {
 } else {
   APP_URL = process.env.PRODUCTION_URL;
 }
-console.log(`Socket Router connected to env: ${node_env}`);
+console.log(`Socket Router connected to env: ${node_env} using AppUrl: ${APP_URL}`);
 
-const MONGO_PORT = process.env.MONGO_PORT;
+const PORT = process.env.PORT;
 const SERVER = 'ServerMessage';
 let connectCount = 0;
 
@@ -74,7 +74,7 @@ const router = function (socket, io, clientUsername) {
       .emit(SERVER, formatMessage(clientUsername,
         roomId, numberConnections, ControllerEnum.AWAIT));
 
-    http.get(`${APP_URL}:${MONGO_PORT}/user/leaveRoom/${clientUsername}`, resp => {
+    http.get(`${APP_URL}:${PORT}/user/leaveRoom/${clientUsername}`, resp => {
       console.log(`${clientUsername} leave room, Mongo roomId = null`);
     }).on("error", err => {
       console.log("Error: " + err.message);
@@ -96,7 +96,7 @@ const router = function (socket, io, clientUsername) {
   // Runs when client disconnects completely (signOut) or close browser/ dced unexpectedly
   socket.on('disconnect', () => {
     console.log(`socket disconnection with username: ${clientUsername}, socketId: ${socket.id}`);
-    http.get(`${APP_URL}:${MONGO_PORT}/user/signOut/${clientUsername}`, resp => {
+    http.get(`${APP_URL}:${PORT}/user/signOut/${clientUsername}`, resp => {
       console.log(`${clientUsername} leave room, Mongo roomId = null`);
     }).on("error", err => {
       console.log("Error: " + err.message);

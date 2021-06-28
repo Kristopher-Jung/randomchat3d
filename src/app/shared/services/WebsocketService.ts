@@ -27,7 +27,7 @@ export class WebsocketService {
 
   connectService(username: string) {
     if(!this.isConnected) {
-      this.socket = io(environment.ws_url, {
+      this.socket = io(environment.server_url, {
         auth: {
           token: username
         }

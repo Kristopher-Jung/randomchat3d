@@ -26,7 +26,7 @@ export class UserService {
     } else {
       console.log("Angular is currently running in Prod Mode");
     }
-    this.connectionUrl = environment.m_url;
+    this.connectionUrl = environment.server_url;
     //console.log(this.connectionUrl);
   }
 

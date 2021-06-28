@@ -18,21 +18,15 @@ if(runEnv === 'dev') {
 } else {
   corsOriginUI = process.env.PRODUCTION_WEBAPP_ORIGIN;
 }
+console.log(`CorsOriginUI: ${corsOriginUI}`);
 
 /**
  * MongoDB server
  */
-app.use(cors({
-  origin: corsOriginUI
-}));
 app.use(express.static(path.join(__dirname, 'static')));
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
 
-const MONGO_PORT = process.env.MONGO_PORT || 5000;
-app.listen(MONGO_PORT, () => {
-  console.log(`started mongo-server on port: ${MONGO_PORT}`);
-});
 mongoRouter(app);
 
 //Mongo DB Connection
@@ -52,12 +46,14 @@ mongoose.connect(mongoUrl, {
 });
 
 /**
- * Socket server
+ * Start Mongo/Socket server
  */
-const socketServer = http.createServer(express);
-const io = socketio(socketServer, {
+app.use(cors());
+app.options('*', cors());
+const server = http.createServer(app);
+const io = require('socket.io')(server, {
   cors: {
-    origins: [corsOriginUI]
+    origin: '*'
   }
 });
 io.on("connection", socket => {
@@ -68,8 +64,7 @@ io.on("connection", socket => {
 });
 
 // Initialize our websocket server on port 3000
-const SOCKET_PORT = process.env.SOCKET_PORT || 3000;
-
-socketServer.listen(SOCKET_PORT, () => {
-  console.log(`started chat-server on port: ${SOCKET_PORT}`);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`started server on port: ${PORT}`);
 });
