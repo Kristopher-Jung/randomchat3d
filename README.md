@@ -1,3 +1,7 @@
+# Link to Demo
+
+https://kristopher-jung.github.io/randomchat3d/
+
 # Description
 RandChat4 is a random chat application that enables user to interact with each-other through their chosen avatar using keyboard inputs.
 
@@ -16,8 +20,8 @@ RandChat4 is a random chat application that enables user to interact with each-o
 1. Free .fbx from Mixamo.com
   - Claire
   - Kaya
-2. Free .glb from Sketchfab.com
-  - totoro
+2. Free .glb from CGTrader
+  - totoro 
 3. classroom model.gltf
   license: Public / Remixable (CC-BY)
   created by Jonathan Granskog
@@ -44,3 +48,7 @@ RandChat4 is a random chat application that enables user to interact with each-o
 3. Mini-games for two players.
 4. More and better 3d assets.
 5. Voice chat.
+
+# Disclaimer
+I made this personal web-page for the sole purpose of learning and web-dev community engagement. 
+I used free-of-use assets obtained from the internet. Contact me email if you'd like to discuss about this project.
