@@ -15,12 +15,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
   public connectedUserNum: number = 0;
   private subscriptions: Subscription;
   @Input('username') username : any;
+  public isMobile = false;
 
   constructor(private userService: UserService, private websocketService: WebsocketService, private router: Router) {
     this.subscriptions = new Subscription();
   }
 
   ngOnInit(): void {
+    var ua = navigator.userAgent;
+    if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(ua)) {
+      this.isMobile = true;
+    }
     this.subscriptions.add(this.websocketService.serverMessageListener.subscribe((msg: ServerMessage) => {
       if(msg) {
         switch (msg.controllerEnum) {

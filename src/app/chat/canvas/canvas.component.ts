@@ -18,7 +18,8 @@ import {AvatarController} from "../../shared/avatars/AvatarController";
 import {UserService} from "../../shared/services/UserService";
 import {StateHandler} from "../../shared/avatars/Statehandler";
 import {DRACOLoader} from "three/examples/jsm/loaders/DRACOLoader";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {JoystickEvent, NgxJoystickComponent} from "ngx-joystick";
+import { JoystickManagerOptions, JoystickOutputData } from 'nipplejs';
 
 @Component({
   selector: 'app-canvas',
@@ -58,6 +59,21 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   private interval: any;
   public showTextMessagesPanel: boolean = false;
 
+  //joystick
+  public isMobile = false;
+  @ViewChild('semiJoystick') dynamicJoystick: NgxJoystickComponent | undefined;
+
+  //TODO play with this options
+  public dynamicOptions: JoystickManagerOptions = {
+    mode: 'semi',
+    catchDistance: 200,
+    threshold:0.1,
+    color: 'purple',
+    size: 150,
+    dynamicPage: false
+  };
+  public dynamicOutputData: JoystickOutputData | undefined;
+
   constructor(private userService: UserService,
               private webSocketService: WebsocketService,
               private avatarController: AvatarController) {
@@ -74,8 +90,8 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
       gltf.scene.position.y-=10;
       gltf.scene.receiveShadow = true;
       this.sceneBoundingBox = new THREE.Box3().setFromObject(gltf.scene);
-      const box = new THREE.BoxHelper(gltf.scene, 0xffff00);
-      this.scene.add(box);
+      // const box = new THREE.BoxHelper(gltf.scene, 0xffff00);
+      // this.scene.add(box);
       //console.log(this.sceneBoundingBox);
       this.scene.add(gltf.scene);
     });
@@ -83,6 +99,11 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   }
 
   ngOnInit() {
+    var ua = navigator.userAgent;
+    if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(ua)) {
+      this.isMobile = true;
+    }
+
     if (this.userService.userName) {
       this.avatarController.load();
     }
@@ -126,9 +147,9 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
         const light = new THREE.AmbientLight(new THREE.Color('white'), 1);
         light.castShadow = true;
         this.scene.add(light);
-        const axesHelper = new THREE.AxesHelper(500);
-        axesHelper.position.y = 200
-        this.scene.add(axesHelper);
+        // const axesHelper = new THREE.AxesHelper(500);
+        // axesHelper.position.y = 200
+        // this.scene.add(axesHelper);
         this.camera.position.x = -600;
         this.camera.position.y = 450;
         this.camera.position.z = 250;
@@ -225,10 +246,56 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
         this.camera.lookAt(this.characterObjs.get(0).get(this.selectedChar).position);
       }
       this.updateMessagePositions();
-      const keyInput = this.avatarController.avatarControllerInput.keys;
-      this.stateHandlers.get(0)?.handleKeyInput(keyInput, this.userService.userName, this.sceneBoundingBox);
+      if(!this.isMobile) {
+        const keyInput = this.avatarController.avatarControllerInput.keys;
+        this.stateHandlers.get(0)?.handleKeyInput(keyInput, this.userService.userName, this.sceneBoundingBox);
+      } else {
+        var angle = this.dynamicOutputData?.direction?.angle;
+        var keyInput = {
+          forward: false,
+          left: false,
+          right: false,
+          down: false
+        };
+        if(angle) {
+          switch (angle) {
+            case 'left':
+              keyInput.forward = false;
+              keyInput.left = true;
+              keyInput.right = false;
+              break;
+            case 'right':
+              keyInput.forward = false;
+              keyInput.left = false;
+              keyInput.right = true;
+              break;
+            case 'up':
+              keyInput.forward = true;
+              keyInput.left = false;
+              keyInput.right = false;
+              break;
+            case 'down':
+              keyInput.forward = false;
+              keyInput.left = false;
+              keyInput.right = false;
+              break;
+            default:
+              keyInput.forward = false;
+              keyInput.left = false;
+              keyInput.right = false;
+          }
+        } else {
+          keyInput.forward = false;
+        }
+        this.stateHandlers.get(0)?.handleKeyInput(keyInput, this.userService.userName, this.sceneBoundingBox);
+      }
       this.renderer.render(this.scene, this.camera);
     }
+  }
+
+  onMoveDynamic(event: JoystickEvent) {
+    this.dynamicOutputData = event.data;
+    console.log(this.dynamicOutputData);
   }
 
   //TODO changes to emoticons based on text message user put

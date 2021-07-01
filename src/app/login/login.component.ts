@@ -16,6 +16,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription;
   public password: any = null;
   public username: any = null;
+  public isMobile = false;
 
   constructor(private userService: UserService,
               public dialogService: DialogService,
@@ -24,6 +25,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    var ua = navigator.userAgent;
+    if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(ua)) {
+      this.isMobile = true;
+    }
   }
 
   ngOnDestroy() {

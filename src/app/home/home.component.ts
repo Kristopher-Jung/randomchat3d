@@ -22,6 +22,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
   public clock = new THREE.Clock();
   public GLTFLoader = new GLTFLoader();
+  public isMobile = false;
 
   constructor(private userService: UserService) {
     this.scene = new THREE.Scene();
@@ -33,36 +34,40 @@ export class HomeComponent implements OnInit, OnDestroy {
       (gltf => {
         //console.log(gltf);
         this.mesh = gltf.scene.children[0];
+        var ua = navigator.userAgent;
+        if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(ua)) {
+          this.mesh.scale.set(5,5,5);
+          this.isMobile = true;
+        }
         this.mesh.castShadow = true;
         this.scene.add(this.mesh);
+        const fontLoader = new THREE.FontLoader()
+        fontLoader.load(
+          'assets/static/font/helvetiker_regular.typeface.json', (helvetiker) => {
+            const textGeometry = new THREE.TextBufferGeometry(
+              'RandChat4',
+              {
+                font: helvetiker,
+                size: this.isMobile ? 3 : 6,
+                height: 1,
+                curveSegments: 2,
+                bevelEnabled: false,
+                bevelThickness: 0.01,
+                bevelSize: 0.02,
+                bevelOffset: 0,
+                bevelSegments: 2
+              });
+            textGeometry.center();
+            const textMaterial = new THREE.MeshBasicMaterial({color: 'black'});
+            textMaterial.wireframe = true;
+            const text = new THREE.Mesh(textGeometry, textMaterial);
+            text.position.y = 35;
+            this.scene.add(text);
+          });
       }))
 
     const directionalLight = new THREE.AmbientLight(0xffffff, 1);
     this.scene.add(directionalLight);
-
-    const fontLoader = new THREE.FontLoader()
-    fontLoader.load(
-      'assets/static/font/helvetiker_regular.typeface.json', (helvetiker) => {
-        const textGeometry = new THREE.TextBufferGeometry(
-          'RandChat4',
-          {
-            font: helvetiker,
-            size: 6,
-            height: 1,
-            curveSegments: 2,
-            bevelEnabled: false,
-            bevelThickness: 0.01,
-            bevelSize: 0.02,
-            bevelOffset: 0,
-            bevelSegments: 2
-          });
-        textGeometry.center();
-        const textMaterial = new THREE.MeshBasicMaterial({color: 'black'});
-        textMaterial.wireframe = true;
-        const text = new THREE.Mesh(textGeometry, textMaterial);
-        text.position.y = 35;
-        this.scene.add(text);
-      });
   }
 
   ngOnInit(): void {
@@ -105,6 +110,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize', ['$event'])
   onWindowResize(event: { target: { innerWidth: number; innerHeight: number; }; }) {
+    this.camera.aspect = event.target.innerWidth / event.target.innerHeight;
+    this.camera.updateProjectionMatrix();
     this.renderer.setSize(event.target.innerWidth, event.target.innerHeight)
   }
 

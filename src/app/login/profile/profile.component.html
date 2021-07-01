@@ -1,6 +1,13 @@
-<div class="flex py-1 bg-gray-700 text-white mx-px justify-center text-center">
+<div *ngIf="!isMobile"
+  class="flex py-1 bg-gray-700 text-white mx-px justify-center text-center">
   <h4>username: {{username}}</h4>
   <h4 class="mx-2.5">-</h4>
   <button class="no-underline hover:underline" (click)="logout()">logout</button>
   <h4 class="mx-10 right-0">>>Connected Users: {{connectedUserNum}}<<</h4>
+</div>
+<div *ngIf="isMobile" class="flex justify-center items-center bg-gray-700 py-1 text-white">
+  <h6>{{username}}</h6>
+  <h6 class="mx-1">-</h6>
+  <button class="no-underline hover:underline" (click)="logout()">logout</button>
+  <h6 class="mx-10">[Online: {{connectedUserNum}}]</h6>
 </div>

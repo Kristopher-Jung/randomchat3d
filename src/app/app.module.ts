@@ -37,6 +37,7 @@ import {ToastModule} from "primeng/toast";
 import { LoadingComponent } from './shared/components/loading/loading.component';
 import {AvatarController} from "./shared/avatars/AvatarController";
 import { TextComponent } from './chat/text/text.component';
+import {NgxJoystickModule} from "ngx-joystick";
 
 @NgModule({
   declarations: [
@@ -55,28 +56,29 @@ import { TextComponent } from './chat/text/text.component';
     LoadingComponent,
     TextComponent
   ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    MenubarModule,
-    SharedModule,
-    InputTextModule,
-    ToolbarModule,
-    ButtonModule,
-    SplitButtonModule,
-    InputTextareaModule,
-    FormsModule,
-    DividerModule,
-    CardModule,
-    PasswordModule,
-    DynamicDialogModule,
-    BlockUIModule,
-    ProgressBarModule,
-    ProgressSpinnerModule,
-    HttpClientModule,
-    ToastModule
-  ],
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        AppRoutingModule,
+        MenubarModule,
+        SharedModule,
+        InputTextModule,
+        ToolbarModule,
+        ButtonModule,
+        SplitButtonModule,
+        InputTextareaModule,
+        FormsModule,
+        DividerModule,
+        CardModule,
+        PasswordModule,
+        DynamicDialogModule,
+        BlockUIModule,
+        ProgressBarModule,
+        ProgressSpinnerModule,
+        HttpClientModule,
+        ToastModule,
+        NgxJoystickModule
+    ],
   providers: [
     WebsocketService,
     UserService,
