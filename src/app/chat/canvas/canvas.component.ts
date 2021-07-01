@@ -20,6 +20,7 @@ import {StateHandler} from "../../shared/avatars/Statehandler";
 import {DRACOLoader} from "three/examples/jsm/loaders/DRACOLoader";
 import {JoystickEvent, NgxJoystickComponent} from "ngx-joystick";
 import { JoystickManagerOptions, JoystickOutputData } from 'nipplejs';
+import {MessageService} from "primeng/api";
 
 @Component({
   selector: 'app-canvas',
@@ -67,20 +68,26 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   public dynamicOptions: JoystickManagerOptions = {
     mode: 'semi',
     catchDistance: 200,
-    threshold:0.1,
-    color: 'purple',
-    size: 150,
-    dynamicPage: false
+    threshold:0.5,
+    color: 'blue',
+    size: 100,
+    dynamicPage: true,
+    fadeTime: 250,
+    restJoystick: true,
+    multitouch: true
   };
   public dynamicOutputData: JoystickOutputData | undefined;
 
   constructor(private userService: UserService,
               private webSocketService: WebsocketService,
-              private avatarController: AvatarController) {
+              private avatarController: AvatarController,
+              private messageService: MessageService) {
     this.fontLoader.load('assets/static/font/helvetiker_regular.typeface.json', font => {
       this.font = font;
     });
     this.scene = new THREE.Scene();
+    // this.renderer.shadowMap.enabled = true;
+    // this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath( '/examples/js/libs/draco/' );
     this.GLTFLoader.setDRACOLoader( dracoLoader );
@@ -89,6 +96,9 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
       gltf.scene.scale.setScalar(150);
       gltf.scene.position.y-=10;
       gltf.scene.receiveShadow = true;
+      gltf.scene.traverse(o => {
+        o.receiveShadow = true;
+      });
       this.sceneBoundingBox = new THREE.Box3().setFromObject(gltf.scene);
       // const box = new THREE.BoxHelper(gltf.scene, 0xffff00);
       // this.scene.add(box);
@@ -99,6 +109,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   }
 
   ngOnInit() {
+    document.addEventListener('contextmenu', event => event.preventDefault());
     var ua = navigator.userAgent;
     if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(ua)) {
       this.isMobile = true;
@@ -143,15 +154,10 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
     this.subscriptions.add(this.avatarController.assetLoadCompleted.subscribe(status => {
       if (status) {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
-        // const controls = new OrbitControls(this.camera, this.renderer.domElement);
-        // controls.minZoom = 0.5;
-        // controls.maxZoom = 2;
         const light = new THREE.AmbientLight(new THREE.Color('white'), 1);
-        light.castShadow = true;
+        light.position.set(0, 500, 0);
+        // light.castShadow = true;
         this.scene.add(light);
-        // const axesHelper = new THREE.AxesHelper(500);
-        // axesHelper.position.y = 200
-        // this.scene.add(axesHelper);
         this.camera.position.x = -600;
         this.camera.position.y = 450;
         this.camera.position.z = 250;
@@ -165,6 +171,15 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
             this.addCharacterToScene(currentCharacter, null, 0);
             this.animate();
           }
+        }
+        if(this.isMobile) {
+          this.messageService.add({
+            key:'canvas',
+            severity:'info',
+            summary:'move',
+            detail:'touch screen to move!',
+            sticky: true
+          });
         }
       }
     }));
@@ -252,42 +267,39 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
         const keyInput = this.avatarController.avatarControllerInput.keys;
         this.stateHandlers.get(0)?.handleKeyInput(keyInput, this.userService.userName, this.sceneBoundingBox);
       } else {
-        var angle = this.dynamicOutputData?.direction?.angle;
-        var keyInput = {
+        // console.log(this.dynamicOutputData?.direction);
+        const x = this.dynamicOutputData?.direction?.x;
+        const y = this.dynamicOutputData?.direction?.y;
+        const angle = this.dynamicOutputData?.direction?.angle;
+        let keyInput = {
           forward: false,
           left: false,
           right: false,
           down: false
         };
-        if(angle) {
-          switch (angle) {
-            case 'left':
-              keyInput.forward = false;
+        switch (x) {
+          case 'left':
+            if(angle == x) {
               keyInput.left = true;
-              keyInput.right = false;
-              break;
-            case 'right':
-              keyInput.forward = false;
-              keyInput.left = false;
+            }
+            break;
+          case 'right':
+            if(angle == x) {
               keyInput.right = true;
-              break;
-            case 'up':
-              keyInput.forward = true;
-              keyInput.left = false;
-              keyInput.right = false;
-              break;
-            case 'down':
-              keyInput.forward = false;
-              keyInput.left = false;
-              keyInput.right = false;
-              break;
-            default:
-              keyInput.forward = false;
-              keyInput.left = false;
-              keyInput.right = false;
-          }
-        } else {
-          keyInput.forward = false;
+            }
+            break;
+          default:
+            break;
+        }
+        switch (y) {
+          case 'up':
+            keyInput.forward = true;
+            break;
+          case 'down':
+            break;
+          default:
+            keyInput.forward = false;
+            break;
         }
         this.stateHandlers.get(0)?.handleKeyInput(keyInput, this.userService.userName, this.sceneBoundingBox);
       }
@@ -298,6 +310,10 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   onMoveDynamic(event: JoystickEvent) {
     this.dynamicOutputData = event.data;
     // console.log(this.dynamicOutputData);
+  }
+
+  onEnd(event:any) {
+    this.dynamicOutputData = undefined;
   }
 
   //TODO changes to emoticons based on text message user put

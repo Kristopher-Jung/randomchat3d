@@ -67,6 +67,7 @@ export class AvatarController {
           fbx.scale.setScalar(1);
           fbx.traverse((c:any) => {
             c.castShadow = true;
+            c.receiveShadow = false;
           });
           fbx.name = charname
           this.chars.get(number)?.set(fbx.name, fbx);
