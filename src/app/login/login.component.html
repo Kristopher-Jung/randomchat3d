@@ -12,7 +12,7 @@
           </div>
           <p-button label="Login"
                     (onClick)="login()"
-                    [disabled]="!username">
+                    [disabled]="!username || isLoadingUserLogin">
           </p-button>
         </div>
       </div>
@@ -25,10 +25,12 @@
         <p-button label="Sign Up"
                   icon="pi pi-user-plus"
                   styleClass="p-button-success"
+                  [disabled]="isLoadingUserLogin"
                   (onClick)="signUp()">
         </p-button>
       </div>
     </div>
+    <p-progressBar *ngIf="isLoadingUserLogin" mode="indeterminate"></p-progressBar>
   </p-card>
 </div>
 <div *ngIf="isMobile" class="flex h-screen justify-center mt-40 overflow-y-hidden">
@@ -44,13 +46,15 @@
         </div>
         <p-button label="Login"
                   (onClick)="login()"
-                  [disabled]="!username">
+                  [disabled]="!username || isLoadingUserLogin">
         </p-button>
         <p-button label="Sign Up"
                   styleClass="p-button-success"
+                  [disabled]="isLoadingUserLogin"
                   (onClick)="signUp()">
         </p-button>
       </div>
     </div>
+    <p-progressBar *ngIf="isLoadingUserLogin" mode="indeterminate"></p-progressBar>
   </p-card>
 </div>

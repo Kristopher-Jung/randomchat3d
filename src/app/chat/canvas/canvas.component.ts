@@ -136,8 +136,10 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
   }
 
   ngAfterViewInit() {
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.rendererContainer.nativeElement.appendChild(this.renderer.domElement);
+    if(this.renderer) {
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.rendererContainer.nativeElement.appendChild(this.renderer.domElement);
+    }
     this.subscriptions.add(this.avatarController.assetLoadCompleted.subscribe(status => {
       if (status) {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
@@ -295,7 +297,7 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
 
   onMoveDynamic(event: JoystickEvent) {
     this.dynamicOutputData = event.data;
-    console.log(this.dynamicOutputData);
+    // console.log(this.dynamicOutputData);
   }
 
   //TODO changes to emoticons based on text message user put
@@ -367,7 +369,9 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnDestroy, OnChan
 
   @HostListener('window:resize', ['$event'])
   onWindowResize(event: { target: { innerWidth: number; innerHeight: number; }; }) {
-    this.renderer.setSize(event.target.innerWidth, event.target.innerHeight)
+    if(this.renderer) {
+      this.renderer.setSize(event.target.innerWidth, event.target.innerHeight)
+    }
   }
 
   ngOnDestroy() {

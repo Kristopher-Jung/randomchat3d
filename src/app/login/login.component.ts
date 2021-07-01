@@ -17,6 +17,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   public password: any = null;
   public username: any = null;
   public isMobile = false;
+  public isLoadingUserLogin = false;
 
   constructor(private userService: UserService,
               public dialogService: DialogService,
@@ -37,12 +38,14 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   login(): void {
     //, this.password
+    this.isLoadingUserLogin = true;
     this.userService.login(this.username).subscribe(res => {
       if(res && !res.message) {
         this.userService.userName = this.username;
         this.userService.selectedChar = res.character;
         this.userService.isUserLoggedIn.next(true);
         this.userService.isUserLoggedInBool = true;
+        this.isLoadingUserLogin = false;
       } else {
         if(res) {
           this.messageService.add({
@@ -51,6 +54,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             summary: 'Warn',
             detail: res.message
           });
+          this.isLoadingUserLogin = false;
         }
       }
     });
